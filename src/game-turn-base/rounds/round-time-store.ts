@@ -19,7 +19,7 @@ export class RoundTimeStore extends RoundTimeStoreBase {
     }
 
     get totalTurns() {
-        return this._durations.wholeTurn || 1;
+        return this.gameSetting.totalTurns || 1;
     }
 
     get wholeTurn() {
@@ -47,10 +47,13 @@ export class RoundTimeStore extends RoundTimeStoreBase {
         return false;
     }
 
-    get isDisplayingResultState() {
-        return this.roundState === ROUND_STATE.SHOW_ANIMATION_RESULT || this.roundState === ROUND_STATE.SHOW_RESULT;
+    get isShowResult() {
+        if (this.totalTurns > 1) {
+            return super.isShowResult;
+        } else {
+            return this.roundTime <= this.wholeRound - this.generatingResult + 1 && this.roundTime > this.placingBet;
+        }
     }
-
     getRemainingTime(totalRoundTime: number): number {
         const turnRemainingTime = this.getRoundRemainingTimeToCalculateTurnRemainingTime(totalRoundTime) % this._durations.wholeTurn;
 

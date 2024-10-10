@@ -24,7 +24,11 @@ export class RoundHandlers extends RoundHandlersBase {
     }
 
     handleDrawId(drawId: number) {
-        if (this.roundTimeStore.isDisplayingResultState) {
+        const { roundTime, isDisplayingResultState, isShowResult } = this.roundTimeStore;
+        if (roundTime < 0) {
+            return;
+        }
+        if (isDisplayingResultState && isShowResult) {
             this.store.setClientRoundId(drawId - 1);
         } else {
             this.store.setClientRoundId(drawId);
