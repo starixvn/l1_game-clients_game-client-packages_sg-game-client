@@ -4,6 +4,7 @@ import { FormatUtils } from "./format-utils";
 import { Translator } from "./localization-manager";
 
 export namespace ErrorUtils {
+    export const ExistingNameErrorCode = "SB0015";
     const ErrorCodeDictionary = {
         "1000": "message_error_occurred",
         "1001": "message_session_timeout",

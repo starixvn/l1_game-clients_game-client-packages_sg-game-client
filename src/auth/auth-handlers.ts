@@ -101,7 +101,16 @@ export namespace AuthHandlers {
         }
 
         private async autoGenerateName() {
-            this.handleSignName(NameGenerator.generateName());
+            let count = 1;
+            let success = false;
+            while (!success && count < 10) {
+                success = await this.handleSignName(NameGenerator.generateName());
+                count++;
+            }
+
+            if (!success) {
+                this.showErrorMessageSignName(ErrorUtils.ExistingNameErrorCode);
+            }
         }
 
         async handleSignName(username: string) {
@@ -109,8 +118,9 @@ export namespace AuthHandlers {
             if (response.authorized) {
                 this.authStore.isShowSignName = false;
                 await this.handleAuthorizedResponse(response);
+                return true;
             } else {
-                this.showErrorMessageSignName(response.errorCode);
+                return false;
             }
         }
 
