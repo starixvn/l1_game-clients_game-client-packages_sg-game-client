@@ -12,6 +12,7 @@ export namespace GameClientEmitMessage {
         isUM: boolean;
         time: string;
         currency: string;
+        gameName?: string;
 
         static eventName = "signin";
     }
@@ -267,17 +268,16 @@ export namespace GameServiceMessage {
     }
 
     export type LuckyNextResult = {
-        ball: number,
-        drawId: number
-    }
+        ball: number;
+        drawId: number;
+    };
 
     export type TResult =
         | number
         | {
-            [betChoice: string]: any;
-        }
+              [betChoice: string]: any;
+          }
         | LuckyNextResult;
-
 
     export type TSettlementResult = {
         [betChoice: string]: boolean;
@@ -452,6 +452,4 @@ export namespace NotificationServiceMessage {
         promotions: Array<BoostedOddsModel>;
         static eventName = "promotions";
     }
-
-
 }

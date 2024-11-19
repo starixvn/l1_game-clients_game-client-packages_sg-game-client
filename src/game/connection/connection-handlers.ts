@@ -29,6 +29,14 @@ export namespace ConnectionHandlers {
             this.roundRunning.stopRunner();
             this.connectionStore.send(GameClientEmitMessage.inGame, null);
         }
+
+        handleGateway(gameName?: string) {
+            if (this.gameConfigStore.initialized) {
+                return;
+            }
+            this.roundRunning.stopRunner();
+            this.connectionStore.send(GameClientEmitMessage.inGame, gameName);
+        }
     }
 
     @injectable()
@@ -56,6 +64,20 @@ export namespace ConnectionHandlers {
         handle() {
             this.connectionStore.closeSocket();
             this.connectionStore.reset();
+        }
+
+        handleGateway(gameName: string) {
+            this.connectionStore.closeSocketGateway(gameName);
+            this.connectionStore.reset();
+        }
+    }
+
+    @injectable()
+    export class SignInHandler {
+        constructor(@inject(ConnectionStore) protected readonly store: ConnectionStore) {}
+
+        handle(gameName: string) {
+            this.store.signIn(gameName);
         }
     }
 }

@@ -77,4 +77,8 @@ export namespace UrlUtils {
     export function getSubDirectory(subDirectory: string) {
         return subDirectory?.length > 0 ? `${subDirectory}/` : "";
     }
+
+    export const buildSocketGatewayUrl = (protocol = "http", path = "/", subDomain: string, configs: SiteConfigs) => {
+        return buildUrl(protocol, path, configs, subDomain);
+    };
 }

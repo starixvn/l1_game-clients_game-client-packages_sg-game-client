@@ -51,7 +51,11 @@ export class ConnectionStore {
         this.reset();
 
         const gameId = this.gameSetting.id;
-        const socketUri = UrlUtils.buildServerUrl("http", `${this.siteConfigs.websocket.proxyPath}`, gameId, this.siteConfigs);
+
+        const socketUri = this.gameSetting?.isSocketGateway
+            ? UrlUtils.buildSocketGatewayUrl("http", "/", this.siteConfigs.subSocketGatewayDomain, this.siteConfigs)
+            : UrlUtils.buildServerUrl("http", `${this.siteConfigs.websocket.proxyPath}`, gameId, this.siteConfigs);
+
         const optionsDefault: ISocketOption = {
             path: UrlUtils.getProxyRoute(this.siteConfigs),
             socketUri,
@@ -85,13 +89,17 @@ export class ConnectionStore {
         this.isConnected = true;
         this.isConnectFailed = false;
         this.connection.onAny(this.onHandleData.bind(this));
-        this.signIn();
+        !this.gameSetting?.isSocketGateway && this.signIn();
     }
 
     onHandleData(event: string, data: any) {
         if (event?.toLocaleLowerCase() === this.gameSetting?.name.toLocaleLowerCase() || event?.toLocaleLowerCase() === "message") {
             Object.entries(data).forEach((entry) => {
                 const [key, value] = entry;
+                console.log(key, value);
+                if (key === "signedIn" && value) {
+                    this.signedIn = true;
+                }
                 this.mediator.emit(key, value);
             });
         } else {
@@ -99,14 +107,17 @@ export class ConnectionStore {
         }
     }
 
-    signIn() {
-        const payload = new GameClientEmitMessage.Signin();
-        const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo;
-        payload.ss = sessionInfo?.session;
-        payload.username = sessionInfo?.username;
-        payload.system = sessionInfo?.system;
+    signIn(gameName?: string) {
+        const { session, username, system } = (StorageManager.get(localStorageKeys.session) as ISessionInfo) || {};
 
-        this.send(GameClientEmitMessage.Signin.eventName, payload);
+        const payload = new GameClientEmitMessage.Signin();
+        payload.ss = session;
+        payload.username = username;
+        payload.system = system;
+
+        const message = this.gameSetting?.isSocketGateway ? { gameName, session: payload } : payload;
+
+        this.send(this.gameSetting?.isSocketGateway ? "signIn" : GameClientEmitMessage.Signin.eventName, message);
     }
 
     onSignedIn() {
@@ -188,6 +199,10 @@ export class ConnectionStore {
 
     closeSocket() {
         this.connection?.disconnect();
+    }
+
+    closeSocketGateway(gameName: string) {
+        this.connection?.emit("outGame", gameName);
     }
 
     reset() {
