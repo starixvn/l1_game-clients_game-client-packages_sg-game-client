@@ -5,6 +5,7 @@ import { BetHandlerBase } from "./bet-handler-base";
 export interface IBetInfo {
     betChoice: string;
     amount: number;
+    gameName?: string;
 }
 
 @injectable()

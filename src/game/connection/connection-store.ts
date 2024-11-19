@@ -139,7 +139,12 @@ export class ConnectionStore {
     handleConnectionStatus(connected: boolean, error?: Error) {
         this.isConnected = connected;
         this.signedIn = connected;
-        this.connection.disconnect();
+        if (this.gameSetting?.isSocketGateway) {
+            this.connection.emit("outGame", this.gameSetting?.name.toLocaleLowerCase());
+        } else {
+            this.connection.disconnect();
+        }
+
         error && this.logError(error);
     }
 
