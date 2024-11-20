@@ -45,6 +45,79 @@ export namespace AuthHandlers {
             this.appStore.setTimeOut();
         }
     }
+
+    @injectable()
+    export class ReCheckIn implements IHandler<{ sessionInfo: ISessionInfo }> {
+        constructor(
+            @inject(AuthStore) private readonly authStore: AuthStore,
+            @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore,
+            @inject(UserService) private readonly userService: UserService,
+            @inject(SignOut) private readonly signOutHandler: SignOut
+        ) {}
+
+        async handle({ sessionInfo }) {
+            const { session, username } = sessionInfo;
+            const response = await this.userService.reCheckIn(session || this.authStore.session, username || this.authStore.username);
+            if (response.isSuccessful) {
+                this.handleSuccessful(response, sessionInfo);
+            } else {
+                this.signOutHandler.handle();
+            }
+        }
+
+        private handleSuccessful(response: ReCheckInResponse, sessionInfo: ISessionInfo) {
+            if (response.apiError) {
+                this.handleError(response);
+            } else {
+                this.authStore.setAuthStoreFromStorage(sessionInfo);
+                StorageManager.set(localStorageKeys.session, this.authStore.getSessionInfo());
+                this.mainPlayerStore.setBalance(response.balance, response.scoins, response.availSpins);
+            }
+        }
+
+        private handleError(response: ReCheckInResponse) {
+            if (response.isDisableAccount) {
+                this.authStore.isDisabledAccount = response.isDisableAccount;
+            }
+            const errorCode = response.apiError.errorCode.toString();
+            this.authStore.errorCode = errorCode;
+        }
+    }
+
+    @injectable()
+    export class TriggerRecheckIn implements IHandler<void> {
+        private reCheckInId: NodeJS.Timeout;
+
+        constructor(@inject(ReCheckIn) private readonly reCheckIn: ReCheckIn, @inject(SignOut) private readonly signOutHandler: SignOut) {}
+
+        async handle() {
+            this.clearInterval();
+            this.reCheckInId = setInterval(() => {
+                this.handleRecheckIn();
+            }, 60 * 1000);
+            this.handleRecheckIn();
+        }
+
+        private async handleRecheckIn() {
+            try {
+                const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo;
+                const isSessionExpired = AuthUtils.verifySession(sessionInfo);
+
+                if (isSessionExpired) {
+                    this.signOutHandler.handle();
+                } else {
+                    await this.reCheckIn.handle({ sessionInfo });
+                }
+            } catch (error) {
+                sentryLogger.logError(error);
+            }
+        }
+
+        clearInterval() {
+            this.reCheckInId && clearInterval(this.reCheckInId);
+        }
+    }
+
     @injectable()
     export class Authorize implements IHandler<{ session?: string; username?: string }> {
         private session = "";
@@ -55,7 +128,8 @@ export namespace AuthHandlers {
             @inject(AppStore) private readonly appStore: AppStore,
             @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore,
             @inject(UserService) private readonly userService: UserService,
-            @inject(SignOut) private readonly signOutHandler: SignOut
+            @inject(SignOut) private readonly signOutHandler: SignOut,
+            @inject(TriggerRecheckIn) private readonly triggerRecheckIn: TriggerRecheckIn
         ) {}
 
         async handle({ session = "", username = "" }) {
@@ -72,6 +146,8 @@ export namespace AuthHandlers {
                     this.signOutHandler.handle();
                 } else {
                     await this.handleAuthorizedResponse(response);
+
+                    this.triggerRecheckIn.handle();
                 }
             } catch (err) {
                 sentryLogger.logError(err);
@@ -253,78 +329,6 @@ export namespace AuthHandlers {
                 username = sessionInfo.username;
             }
             await this.authorizeHandler.handle({ session, username });
-        }
-    }
-
-    @injectable()
-    export class ReCheckIn implements IHandler<{ sessionInfo: ISessionInfo }> {
-        constructor(
-            @inject(AuthStore) private readonly authStore: AuthStore,
-            @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore,
-            @inject(UserService) private readonly userService: UserService,
-            @inject(SignOut) private readonly signOutHandler: SignOut
-        ) {}
-
-        async handle({ sessionInfo }) {
-            const { session, username } = sessionInfo;
-            const response = await this.userService.reCheckIn(session || this.authStore.session, username || this.authStore.username);
-            if (response.isSuccessful) {
-                this.handleSuccessful(response, sessionInfo);
-            } else {
-                this.signOutHandler.handle();
-            }
-        }
-
-        private handleSuccessful(response: ReCheckInResponse, sessionInfo: ISessionInfo) {
-            if (response.apiError) {
-                this.handleError(response);
-            } else {
-                this.authStore.setAuthStoreFromStorage(sessionInfo);
-                StorageManager.set(localStorageKeys.session, this.authStore.getSessionInfo());
-                this.mainPlayerStore.setBalance(response.balance, response.scoins, response.availSpins);
-            }
-        }
-
-        private handleError(response: ReCheckInResponse) {
-            if (response.isDisableAccount) {
-                this.authStore.isDisabledAccount = response.isDisableAccount;
-            }
-            const errorCode = response.apiError.errorCode.toString();
-            this.authStore.errorCode = errorCode;
-        }
-    }
-
-    @injectable()
-    export class TriggerRecheckIn implements IHandler<void> {
-        private reCheckInId: NodeJS.Timeout;
-
-        constructor(@inject(ReCheckIn) private readonly reCheckIn: ReCheckIn, @inject(SignOut) private readonly signOutHandler: SignOut) {}
-
-        async handle() {
-            this.clearInterval();
-            this.reCheckInId = setInterval(() => {
-                this.handleRecheckIn();
-            }, 60 * 1000);
-            this.handleRecheckIn();
-        }
-
-        private async handleRecheckIn() {
-            try {
-                const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo;
-                const isSessionExpired = AuthUtils.verifySession(sessionInfo);
-
-                if (isSessionExpired) {
-                    this.signOutHandler.handle();
-                } else {
-                    await this.reCheckIn.handle({ sessionInfo });
-                }
-            } catch (error) {
-                sentryLogger.logError(error);
-            }
-        }
-
-        clearInterval() {
-            this.reCheckInId && clearInterval(this.reCheckInId);
         }
     }
 

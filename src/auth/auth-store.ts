@@ -1,6 +1,7 @@
-import { injectable } from "inversify";
-import { makeAutoObservable } from "mobx";
 import { SSOResponse } from "@sg/sg-user-service-client/dist/auth";
+import { inject, injectable } from "inversify";
+import { makeAutoObservable } from "mobx";
+import { MainPlayerStore } from "../players";
 import { URLParams } from "../shared/constants/url-params";
 import { StorageManager, localStorageKeys } from "../shared/utils";
 
@@ -29,7 +30,10 @@ export class AuthStore {
     ssoTime: Date;
     isShowSignName = false;
 
-    constructor() {
+    constructor(
+        @inject(MainPlayerStore)
+        protected readonly mainPlayerStore: MainPlayerStore
+    ) {
         makeAutoObservable(this);
     }
 
@@ -62,6 +66,7 @@ export class AuthStore {
 
     setAuthSSOStore(response: SSOResponse) {
         this.session = response.ss;
+        response?.offerGames && this.mainPlayerStore.setOfferGames(response?.offerGames);
         this.setAuthStore(response);
     }
 

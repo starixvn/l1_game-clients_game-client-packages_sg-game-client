@@ -1,3 +1,4 @@
+import { OfferGame } from "@sg/sg-user-service-client/dist/auth";
 import { inject, injectable } from "inversify";
 import { makeAutoObservable } from "mobx";
 import { NoticeStore } from "../game/notices/notice-store";
@@ -67,5 +68,9 @@ export class MainPlayerStore {
         ) {
             this.noticeStore.addWarning(Translator.commonTranslate("message_bet_limit_change"));
         }
+    }
+
+    setOfferGames(offerGames: OfferGame[]) {
+        this.offerGames = offerGames;
     }
 }
