@@ -72,7 +72,7 @@ export class BetHandlerBase {
         if (this.isValidBet(amount)) {
             this.betStore.isProcessingBet = true;
             this.betStore.validBet = { value: false };
-            const betData = this.gameSetting?.isSocketGateway ? { gameName: data?.gameName, data } : data;
+            const betData = this.gameSetting?.isSocketGateway ? { gameName: data?.gameName, betData: data } : data;
             this.connectionStore.send(GameClientEmitMessage.Bet.eventName, betData);
 
             this.retryGameHandler.handle();
