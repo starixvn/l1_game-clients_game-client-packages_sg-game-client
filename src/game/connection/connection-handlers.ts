@@ -12,6 +12,10 @@ export namespace ConnectionHandlers {
         handle(customizeOptions?: ISocketOption) {
             this.store.initConnection(customizeOptions);
         }
+
+        handleGateway() {
+            this.store.initGatewayConnection();
+        }
     }
 
     @injectable()

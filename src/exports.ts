@@ -8,7 +8,9 @@ export * from "./features";
 export * from "./game";
 export * as GameBaccaratX from "./game-baccaratx";
 export * as GameCrash from "./game-crash";
+export * as GameTurnBase from "./game-turn-base";
 export * as RoundPF from "./game/round-pf";
+export * as GatewayConnection from "./gateway-connection";
 export * as Notification from "./notification";
 export * as Player from "./players";
 export * as Shared from "./shared";
@@ -17,5 +19,3 @@ export * from "./shared/models/game-messages";
 export * from "./shared/utils";
 export * from "./shared/utils/localization-manager";
 export * as Undermaintenace from "./under-maintenance";
-export * as GameTurnBase from "./game-turn-base";
-

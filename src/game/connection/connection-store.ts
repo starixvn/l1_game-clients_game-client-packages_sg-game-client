@@ -4,6 +4,7 @@ import { ManagerOptions, Socket, SocketOptions, io } from "socket.io-client";
 import * as MsgpackParser from "socket.io-msgpack-parser";
 import { AuthStore, ISessionInfo } from "../../auth";
 import { SiteConfigs } from "../../configs/site-configs";
+import { GatewayConnectionStore } from "../../gateway-connection";
 import { GameClientEmitMessage, Mediator } from "../../shared";
 import { SocketEvents } from "../../shared/constants/socket-event";
 import { BrowserDomUtils, StorageManager, UrlUtils, localStorageKeys, sentryLogger } from "../../shared/utils";
@@ -36,7 +37,8 @@ export class ConnectionStore {
         @inject(Mediator) protected readonly mediator: Mediator,
         @inject(GameSetting) protected readonly gameSetting: GameSetting,
         @inject(SiteConfigs) protected readonly siteConfigs: SiteConfigs,
-        @inject(AuthStore) protected readonly authStore: AuthStore
+        @inject(AuthStore) protected readonly authStore: AuthStore,
+        @inject(GatewayConnectionStore) protected readonly gatewayStore: GatewayConnectionStore
     ) {
         makeAutoObservable(this);
     }
@@ -52,9 +54,7 @@ export class ConnectionStore {
 
         const gameId = this.gameSetting.id;
 
-        const socketUri = this.gameSetting?.isSocketGateway
-            ? UrlUtils.buildSocketGatewayUrl("http", "/", this.siteConfigs.subSocketGatewayDomain, this.siteConfigs)
-            : UrlUtils.buildServerUrl("http", `${this.siteConfigs.websocket.proxyPath}`, gameId, this.siteConfigs);
+        const socketUri = UrlUtils.buildServerUrl("http", `${this.siteConfigs.websocket.proxyPath}`, gameId, this.siteConfigs);
 
         const optionsDefault: ISocketOption = {
             path: UrlUtils.getProxyRoute(this.siteConfigs),
@@ -75,6 +75,14 @@ export class ConnectionStore {
         this.initBaseListener();
     }
 
+    initGatewayConnection() {
+        this.reset();
+        this.connection = this.gatewayStore?.connection;
+        this.isConnected = this.gatewayStore?.isConnected;
+        this.initBaseListener();
+        this.connection && this.connection.onAny(this.onHandleData.bind(this));
+    }
+
     initBaseListener() {
         if (this.connection) {
             this.connection.on(events.connect, this.onConnected.bind(this));
@@ -89,16 +97,15 @@ export class ConnectionStore {
         this.isConnected = true;
         this.isConnectFailed = false;
         this.connection.onAny(this.onHandleData.bind(this));
-        !this.gameSetting?.isSocketGateway && this.signIn();
+        this.signIn();
     }
 
     onHandleData(event: string, data: any) {
         if (event?.toLocaleLowerCase() === this.gameSetting?.name.toLocaleLowerCase() || event?.toLocaleLowerCase() === "message") {
             Object.entries(data).forEach((entry) => {
                 const [key, value] = entry;
-                console.log(key, value);
                 if (key === "signedIn" && value) {
-                    this.signedIn = true;
+                    this.onSignedIn();
                 }
                 this.mediator.emit(key, value);
             });
@@ -115,9 +122,9 @@ export class ConnectionStore {
         payload.username = username;
         payload.system = system;
 
-        const message = this.gameSetting?.isSocketGateway ? { gameName, session: payload } : payload;
+        const message = gameName ? { gameName, session: payload } : payload;
 
-        this.send(this.gameSetting?.isSocketGateway ? "signIn" : GameClientEmitMessage.Signin.eventName, message);
+        this.send(gameName ? "signIn" : GameClientEmitMessage.Signin.eventName, message);
     }
 
     onSignedIn() {
