@@ -2,11 +2,11 @@ import { inject, injectable } from "inversify";
 import { makeAutoObservable } from "mobx";
 import { ManagerOptions, Socket, SocketOptions, io } from "socket.io-client";
 import * as MsgpackParser from "socket.io-msgpack-parser";
-import { AuthStore, ISessionInfo } from "../auth";
+import { AuthStore } from "../auth";
 import { SiteConfigs } from "../configs/site-configs";
-import { GameClientEmitMessage, Mediator } from "../shared";
+import { Mediator } from "../shared";
 import { SocketEvents } from "../shared/constants/socket-event";
-import { StorageManager, UrlUtils, localStorageKeys, sentryLogger } from "../shared/utils";
+import { UrlUtils, sentryLogger } from "../shared/utils";
 
 export const events = {
     ...SocketEvents,
@@ -45,9 +45,7 @@ export class GatewayConnectionStore {
     isDisconnect = false;
 
     initConnection(customizeOptions?: ISocketOption) {
-        if (this.connection && this.isConnected) {
-            return;
-        }
+        this.reset();
 
         const socketUri = UrlUtils.buildSocketGatewayUrl("http", "/", this.siteConfigs.subSocketGatewayDomain, this.siteConfigs);
         const optionsDefault: ISocketOption = {
@@ -72,7 +70,6 @@ export class GatewayConnectionStore {
     initBaseListener() {
         if (this.connection) {
             this.connection.on(events.connect, this.onConnected.bind(this));
-            this.connection.on(events.signedIn, this.onSignedIn.bind(this));
             this.connection.on(events.connectError, this.onConnectFailed.bind(this));
             this.connection.on(events.connectFailed, this.onConnectFailed.bind(this));
             this.connection.on(events.disconnect, this.onDisconnected.bind(this));
@@ -82,34 +79,6 @@ export class GatewayConnectionStore {
     onConnected() {
         this.isConnected = true;
         this.isConnectFailed = false;
-        this.connection.onAny(this.onHandleData.bind(this));
-    }
-
-    onHandleData(event: string, data: any) {
-        if (event?.toLocaleLowerCase() === "message") {
-            Object.entries(data).forEach((entry) => {
-                const [key, value] = entry;
-
-                this.mediator.emit(key, value);
-            });
-        } else {
-            this.mediator.emit(event, data);
-        }
-    }
-
-    signIn(gameName: string) {
-        const { session, username, system } = (StorageManager.get(localStorageKeys.session) as ISessionInfo) || {};
-
-        const payload = new GameClientEmitMessage.Signin();
-        payload.ss = session;
-        payload.username = username;
-        payload.system = system;
-
-        this.send("signIn", { gameName, session: payload });
-    }
-
-    onSignedIn() {
-        this.signedIn = true;
     }
 
     onConnectFailed(error?: Error) {
@@ -136,7 +105,6 @@ export class GatewayConnectionStore {
     handleConnectionStatus(connected: boolean, error?: Error) {
         this.isConnected = connected;
         this.signedIn = connected;
-        this.connection.emit("outGame", "SeDie");
 
         error && this.logError(error);
     }
@@ -151,14 +119,6 @@ export class GatewayConnectionStore {
 
     private logError(reason: string | Error) {
         sentryLogger.logError(reason);
-    }
-
-    send(eventName: string, data: any) {
-        this.connection?.emit(eventName, data);
-    }
-
-    closeSocket(gameName: string) {
-        this.connection?.emit("outGame", gameName);
     }
 
     reset() {
