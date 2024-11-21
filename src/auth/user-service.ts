@@ -1,7 +1,7 @@
-import { inject, injectable } from "inversify";
 import UserServiceClient from "@sg/sg-user-service-client";
 import Auth from "@sg/sg-user-service-client/dist/auth";
 import Setting from "@sg/sg-user-service-client/dist/setting";
+import { inject, injectable } from "inversify";
 import { SiteConfigs } from "../configs";
 import { UrlUtils } from "../shared/utils";
 
@@ -12,7 +12,7 @@ export class UserService {
     readonly userServiceClient: UserServiceClient;
 
     constructor(@inject(SiteConfigs) protected readonly siteConfigs: SiteConfigs) {
-        const path = this.siteConfigs?.subDirectory ? `/${this.siteConfigs.subDirectory}/user` : "/user";
+        const path = this.siteConfigs?.subDirectory ? `/${this.siteConfigs.subDirectory}/livepageuser` : "/livepageuser";
         const url = this.siteConfigs.isDev ? this.siteConfigs.userServiceUrlDev : UrlUtils.buildUrlWithPath(path, this.siteConfigs);
 
         this.userServiceClient = new UserServiceClient(url);
