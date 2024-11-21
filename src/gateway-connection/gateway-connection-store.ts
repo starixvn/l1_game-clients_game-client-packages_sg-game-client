@@ -47,7 +47,7 @@ export class GatewayConnectionStore {
     initConnection(customizeOptions?: ISocketOption) {
         this.reset();
 
-        const socketUri = UrlUtils.buildSocketGatewayUrl("http", "/", this.siteConfigs.subSocketGatewayDomain, this.siteConfigs);
+        const socketUri = UrlUtils.buildUrlWithPath("/", this.siteConfigs);
         const optionsDefault: ISocketOption = {
             path: UrlUtils.getProxyRoute(this.siteConfigs),
             socketUri,

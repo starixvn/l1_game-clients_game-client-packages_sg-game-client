@@ -124,7 +124,7 @@ export class ConnectionStore {
 
         const message = gameName ? { gameName, session: payload } : payload;
 
-        this.send(gameName ? "signIn" : GameClientEmitMessage.Signin.eventName, message);
+        this.send(GameClientEmitMessage.Signin.eventName, message);
     }
 
     onSignedIn() {
