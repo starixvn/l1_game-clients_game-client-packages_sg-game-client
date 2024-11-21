@@ -243,6 +243,10 @@ export namespace GameServiceMessage {
         static eventName = "apiError";
     }
 
+    export class ErrorCode extends Notice {
+        static eventName = "errorCode";
+    }
+
     export const betChoice = "betChoice";
     export const freeBet = "freeBet";
     export type WinningByChoices = Odds;

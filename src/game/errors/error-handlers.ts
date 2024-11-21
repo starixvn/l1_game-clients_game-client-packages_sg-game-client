@@ -3,10 +3,11 @@ import { AuthStore } from "../../auth";
 import { MainPlayerStore } from "../../players";
 import { GameServiceMessage, IMultipleHandlers, utils } from "../../shared";
 import { Translator } from "../../shared/utils/localization-manager";
+import { ConnectionStore } from "../connection/connection-store";
+import { GameSetting } from "../game-configs";
 import { NoticeInfo, NoticeStore, NoticeType } from "../notices";
 import { AppTypes } from "./../../shared/constants/app-type";
 import { ErrorStore } from "./error-store";
-import { GameSetting } from "../game-configs";
 
 const { ErrorUtils } = utils;
 
@@ -17,7 +18,8 @@ export class ErrorHandlers implements IMultipleHandlers {
         @inject(NoticeStore) protected readonly noticeStore: NoticeStore,
         @inject(AuthStore) protected readonly authStore: AuthStore,
         @inject(ErrorStore) protected readonly errorStore: ErrorStore,
-        @inject(GameSetting) protected readonly gameSetting: GameSetting
+        @inject(GameSetting) protected readonly gameSetting: GameSetting,
+        @inject(ConnectionStore) protected readonly connectionStore: ConnectionStore
     ) {}
 
     getSystem = () => {
@@ -52,10 +54,40 @@ export class ErrorHandlers implements IMultipleHandlers {
         });
     }
 
+    handleErrorCode(errorCode: string) {
+        const errorCodeString = errorCode.toString();
+        if (ErrorUtils.isSessionTimeoutError(errorCodeString)) {
+            this.authStore.errorCode = errorCodeString;
+
+            return;
+        }
+
+        if (ErrorUtils.isConnectFailed(errorCodeString)) {
+            setTimeout(() => {
+                this.connectionStore.isConnectFailed = true;
+            }, 1000);
+
+            return;
+        }
+
+        const text = ErrorUtils.getTranslateMessage(errorCode, this.getSystem(), this.gameSetting.name);
+        this.noticeStore.addNotice({
+            message: text,
+            title: Translator.commonTranslate("notice"),
+            type: NoticeType.Error,
+            onClose: null,
+            noticeInfo: NoticeInfo.ApiError,
+        });
+    }
+
     eventHandleList = [
         {
             name: GameServiceMessage.ApiError.eventName,
             handle: this.handleApiError,
+        },
+        {
+            name: GameServiceMessage.ErrorCode.eventName,
+            handle: this.handleErrorCode,
         },
     ];
 }
