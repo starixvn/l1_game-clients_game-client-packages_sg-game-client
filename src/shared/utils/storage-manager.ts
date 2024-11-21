@@ -121,4 +121,5 @@ export const localStorageKeys = {
     permanentGameUserSetting: "permanent-game-user-setting",
     operator: "op",
     token: "token",
+    offerGames: "ogs",
 };

@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
-import { GatewayConnectionStore, ISocketOption } from "./gateway-connection-store";
+import { ISocketOption } from "../game/connection";
+import { GatewayConnectionStore } from "./gateway-connection-store";
 
 export namespace GatewayConnectionHandlers {
     @injectable()

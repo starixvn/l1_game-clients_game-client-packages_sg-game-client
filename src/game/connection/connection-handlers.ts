@@ -53,7 +53,8 @@ export namespace ConnectionHandlers {
                 return;
             }
             this.roundRunning.stopRunner();
-            this.connectionStore.send(GameClientEmitMessage.inGame, this.gameSetting.gameName);
+            // this.connectionStore.send(GameClientEmitMessage.inGame, this.gameSetting.gameName);
+            this.connectionStore.send(GameClientEmitMessage.inGame, { id: "123" });
         }
     }
 

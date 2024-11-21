@@ -4,29 +4,10 @@ import { ManagerOptions, Socket, SocketOptions, io } from "socket.io-client";
 import * as MsgpackParser from "socket.io-msgpack-parser";
 import { AuthStore } from "../auth";
 import { SiteConfigs } from "../configs/site-configs";
+import { ISocketOption } from "../game/connection/connection-store";
 import { Mediator } from "../shared";
 import { SocketEvents } from "../shared/constants/socket-event";
 import { UrlUtils, sentryLogger } from "../shared/utils";
-
-export const events = {
-    ...SocketEvents,
-    ...{
-        signedIn: "signedIn",
-    },
-};
-
-export interface ISocketOption {
-    socketUri: string;
-    proxyRoute?: string;
-    forceNew?: boolean;
-    enableMsgpackParser?: boolean;
-    transports?: string[];
-    upgrade?: boolean;
-    path?: string;
-    extraHeaders?: object;
-    parser?: any;
-    auth?: any;
-}
 
 @injectable()
 export class GatewayConnectionStore {
@@ -69,10 +50,10 @@ export class GatewayConnectionStore {
 
     initBaseListener() {
         if (this.connection) {
-            this.connection.on(events.connect, this.onConnected.bind(this));
-            this.connection.on(events.connectError, this.onConnectFailed.bind(this));
-            this.connection.on(events.connectFailed, this.onConnectFailed.bind(this));
-            this.connection.on(events.disconnect, this.onDisconnected.bind(this));
+            this.connection.on(SocketEvents.connect, this.onConnected.bind(this));
+            this.connection.on(SocketEvents.connectError, this.onConnectFailed.bind(this));
+            this.connection.on(SocketEvents.connectFailed, this.onConnectFailed.bind(this));
+            this.connection.on(SocketEvents.disconnect, this.onDisconnected.bind(this));
         }
     }
 

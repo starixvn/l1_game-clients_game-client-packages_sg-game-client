@@ -3,7 +3,7 @@ import { inject, injectable } from "inversify";
 import { makeAutoObservable } from "mobx";
 import { NoticeStore } from "../game/notices/notice-store";
 import { GameServiceMessage } from "../shared";
-import { Translator } from "../shared/utils";
+import { localStorageKeys, StorageManager, Translator } from "../shared/utils";
 
 export interface IStakeLevel {
     minBet: number;
@@ -43,7 +43,7 @@ export class MainPlayerStore {
         this.avatarId = user.avatarId;
         this.setBalance(user.red, user.scoins, user.availSpins);
         this.currency = user.currency;
-        this.offerGames = user.offerGames;
+        this.setOfferGames(user?.offerGames as OfferGame[]);
         this.fractionalOddsFormat = user.fractionalOddsFormat;
         this.displayPlayerCurrency = user.isDisplayPlayerCurrency;
         this.disableJackpotGames = user.disableJackpotGames;
@@ -72,5 +72,11 @@ export class MainPlayerStore {
 
     setOfferGames(offerGames: OfferGame[]) {
         this.offerGames = offerGames;
+        StorageManager.set(localStorageKeys.offerGames, offerGames);
+    }
+
+    loadOfferGames() {
+        const offerGames = StorageManager.get(localStorageKeys.offerGames) as OfferGame[];
+        offerGames && this.setOfferGames(offerGames);
     }
 }

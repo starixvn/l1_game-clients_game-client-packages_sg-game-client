@@ -81,30 +81,39 @@ export class ConnectionStore {
 
     initGatewayConnection() {
         this.reset();
-        this.connection = this.gatewayStore?.connection;
-        this.isConnected = this.gatewayStore?.isConnected;
+        const { connection, isConnected } = this.gatewayStore || {};
+        this.connection = connection;
+        this.isConnected = isConnected;
+
         this.initBaseListener();
-        this.connection && this.connection.onAny(this.onHandleData.bind(this));
+        this.connection?.onAny(this.onHandleData.bind(this));
     }
 
     initBaseListener() {
-        if (this.connection) {
-            this.connection.on(events.connect, this.onConnected.bind(this));
-            this.connection.on(events.signedIn, this.onSignedIn.bind(this));
-            this.connection.on(events.connectError, this.onConnectFailed.bind(this));
-            this.connection.on(events.connectFailed, this.onConnectFailed.bind(this));
-            this.connection.on(events.disconnect, this.onDisconnected.bind(this));
+        if (!this.connection) {
+            return;
         }
+
+        const { connection } = this;
+        const { connect, signedIn, connectError, connectFailed, disconnect } = events;
+
+        connection.on(connect, this.onConnected.bind(this));
+        connection.on(signedIn, this.onSignedIn.bind(this));
+        connection.on(connectError, this.onConnectFailed.bind(this));
+        connection.on(connectFailed, this.onConnectFailed.bind(this));
+        connection.on(disconnect, this.onDisconnected.bind(this));
     }
 
-    onConnected() {
+    protected onConnected() {
         this.isConnected = true;
         this.isConnectFailed = false;
         this.connection.onAny(this.onHandleData.bind(this));
-        this.signIn();
+        if (!this.gameSetting.isSocketGateway) {
+            this.signIn();
+        }
     }
 
-    onHandleData(event: string, data: any) {
+    protected onHandleData(event: string, data: any) {
         if (event?.toLocaleLowerCase() === this.gameSetting?.name.toLocaleLowerCase() || event?.toLocaleLowerCase() === "message") {
             Object.entries(data).forEach((entry) => {
                 const [key, value] = entry;
@@ -119,17 +128,21 @@ export class ConnectionStore {
     }
 
     signIn(gameName?: string, serviceName?: string) {
-        const { session, username, system } = (StorageManager.get(localStorageKeys.session) as ISessionInfo) || {};
+        const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo | null;
+        if (!sessionInfo) {
+            console.warn("No session information found.");
+            return;
+        }
 
+        const { session, username, system } = sessionInfo;
         const payload = new GameClientEmitMessage.Signin();
         payload.ss = session;
         payload.username = username;
         payload.system = system;
 
-        const message: TMessageEmit | GameClientEmitMessage.Signin = gameName ? { gameName, session: payload } : payload;
-        if (gameName && serviceName) {
-            (message as TMessageEmit).serviceName = serviceName;
-        }
+        const message: TMessageEmit | GameClientEmitMessage.Signin = gameName
+            ? { gameName, session: payload, ...(serviceName && { serviceName }) }
+            : payload;
 
         this.send(GameClientEmitMessage.Signin.eventName, message);
     }
@@ -150,11 +163,11 @@ export class ConnectionStore {
         this.send(GameClientEmitMessage.JoinGame.eventName, message);
     }
 
-    onSignedIn() {
+    protected onSignedIn() {
         this.signedIn = true;
     }
 
-    onConnectFailed(error?: Error) {
+    protected onConnectFailed(error?: Error) {
         this.isConnectFailed = true;
         this.isInstant() && this.postDisconnectMessage();
         this.handleConnectionStatus(false, error);
@@ -166,7 +179,7 @@ export class ConnectionStore {
         this.handleConnectionStatus(false);
     }
 
-    handleDisconnectionReason(reason = "") {
+    protected handleDisconnectionReason(reason = "") {
         if (this.isServerDisconnect(reason)) {
             this.isDisconnect = true;
             return;
@@ -177,19 +190,21 @@ export class ConnectionStore {
         }
     }
 
-    handleConnectionStatus(connected: boolean, error?: Error) {
+    protected handleConnectionStatus(connected: boolean, error?: Error) {
         this.isConnected = connected;
         this.signedIn = connected;
-        if (this.gameSetting?.isSocketGateway) {
-            this.connection.emit("outGame", this.gameSetting?.name.toLocaleLowerCase());
-        } else {
-            this.connection.disconnect();
+        if (this.connection) {
+            if (this.gameSetting?.isSocketGateway) {
+                this.connection.emit("outGame", this.gameSetting?.name.toLocaleLowerCase());
+            } else {
+                this.connection.disconnect();
+            }
         }
 
         error && this.logError(error);
     }
 
-    handleDisconnectInstant(reason: string | unknown) {
+    protected handleDisconnectInstant(reason: string | unknown) {
         if (this.shouldPostDisconnectMessage(reason)) {
             this.postDisconnectMessage();
         }

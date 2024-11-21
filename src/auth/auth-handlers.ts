@@ -233,7 +233,8 @@ export namespace AuthHandlers {
             @inject(Authorize) private readonly authorizeHandler: Authorize,
             @inject(SignOut) private readonly signOutHandler: SignOut,
             @inject(PlayerSelectionHandlers.ClearHandlers)
-            private readonly playerSelectionClearHandler: PlayerSelectionHandlers.ClearHandlers
+            private readonly playerSelectionClearHandler: PlayerSelectionHandlers.ClearHandlers,
+            @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore
         ) {}
 
         async handle(ssoInfo: ISSOInfo) {
@@ -281,6 +282,7 @@ export namespace AuthHandlers {
                 this.appStore.loadReturnUrlAnd();
                 this.appStore.loadDirectMode();
                 this.appStore.loadApp();
+                this.mainPlayerStore.loadOfferGames();
                 await this.handleAuthorize();
             }
         }
