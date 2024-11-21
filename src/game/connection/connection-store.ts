@@ -30,6 +30,11 @@ export interface ISocketOption {
     parser?: any;
     auth?: any;
 }
+export type TMessageEmit = {
+    gameName: string;
+    session: GameClientEmitMessage.Signin;
+    serviceName?: string;
+};
 
 @injectable()
 export class ConnectionStore {
@@ -53,7 +58,6 @@ export class ConnectionStore {
         this.reset();
 
         const gameId = this.gameSetting.id;
-
         const socketUri = UrlUtils.buildServerUrl("http", `${this.siteConfigs.websocket.proxyPath}`, gameId, this.siteConfigs);
 
         const optionsDefault: ISocketOption = {
@@ -114,7 +118,7 @@ export class ConnectionStore {
         }
     }
 
-    signIn(gameName?: string) {
+    signIn(gameName?: string, serviceName?: string) {
         const { session, username, system } = (StorageManager.get(localStorageKeys.session) as ISessionInfo) || {};
 
         const payload = new GameClientEmitMessage.Signin();
@@ -122,9 +126,28 @@ export class ConnectionStore {
         payload.username = username;
         payload.system = system;
 
-        const message = gameName ? { gameName, session: payload } : payload;
+        const message: TMessageEmit | GameClientEmitMessage.Signin = gameName ? { gameName, session: payload } : payload;
+        if (gameName && serviceName) {
+            (message as TMessageEmit).serviceName = serviceName;
+        }
 
         this.send(GameClientEmitMessage.Signin.eventName, message);
+    }
+
+    joinGame(gameName: string, serviceName?: string) {
+        const { session, username, system } = (StorageManager.get(localStorageKeys.session) as ISessionInfo) || {};
+
+        const payload = new GameClientEmitMessage.JoinGame();
+        payload.ss = session;
+        payload.username = username;
+        payload.system = system;
+
+        const message: TMessageEmit = { gameName, session: payload };
+        if (serviceName) {
+            message.serviceName = serviceName;
+        }
+
+        this.send(GameClientEmitMessage.JoinGame.eventName, message);
     }
 
     onSignedIn() {

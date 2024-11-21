@@ -156,7 +156,7 @@ export namespace AuthHandlers {
 
         private async handleAuthorizedResponse(response: IAuthorizeResponse) {
             if (this.needAutoGenerateNickname(response?.authorized)) {
-                await this.autoGenerateName();
+                await this.handleAutoGenerateName();
                 return;
             }
 
@@ -176,7 +176,7 @@ export namespace AuthHandlers {
             return !isAuthorized && this.appStore?.isAutoCreateNickname;
         }
 
-        private async autoGenerateName() {
+        async handleAutoGenerateName() {
             let count = 1;
             let success = false;
             while (!success && count < 10) {

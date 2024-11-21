@@ -16,6 +16,11 @@ export namespace GameClientEmitMessage {
 
         static eventName = "signin";
     }
+
+    export class JoinGame extends Signin {
+        static eventName = "joinGame";
+    }
+
     export class Bet {
         amount: number;
         username: string;
@@ -27,6 +32,8 @@ export namespace GameClientEmitMessage {
     }
 
     export const inGame = "inGame";
+
+    export const joinGame = "joinGame";
 
     export class BetHistory {
         page: number;

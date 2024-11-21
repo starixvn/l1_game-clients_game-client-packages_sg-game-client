@@ -86,7 +86,6 @@ export class AppStore {
         if (refData) {
             if (this.isOpenDirectly(refData) || this.isPlayForFunMode(refData)) {
                 this.isDirectMode = true;
-                this.isAutoCreateNickname = true;
             }
 
             if (this.isPlayForFunMode(refData)) {

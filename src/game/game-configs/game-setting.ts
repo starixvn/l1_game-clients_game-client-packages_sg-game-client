@@ -19,4 +19,6 @@ export class GameSetting {
     validateBalanceWhenBet?: boolean;
     durationShowPromptMessage?: number;
     isSocketGateway?: false;
+    serviceName?: string;
+    gameName: string;
 }

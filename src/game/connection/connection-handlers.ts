@@ -1,5 +1,6 @@
 import { inject, injectable } from "inversify";
 import { GameClientEmitMessage, IHandler } from "../../shared";
+import { GameSetting } from "../game-configs";
 import { GameConfigStore } from "../game-configs/game-config-store";
 import { RoundRunningHandlers } from "../rounds";
 import { ConnectionStore, ISocketOption } from "./connection-store";
@@ -19,11 +20,24 @@ export namespace ConnectionHandlers {
     }
 
     @injectable()
+    export class JoinGameHandler {
+        constructor(
+            @inject(ConnectionStore) protected readonly connectionStore: ConnectionStore,
+            @inject(GameSetting) protected readonly gameSetting: GameSetting
+        ) {}
+
+        handle() {
+            this.connectionStore.joinGame(this.gameSetting.gameName, this.gameSetting?.serviceName);
+        }
+    }
+
+    @injectable()
     export class InGameHandler implements IHandler<void> {
         constructor(
             @inject(ConnectionStore) private readonly connectionStore: ConnectionStore,
             @inject(RoundRunningHandlers) private readonly roundRunning: RoundRunningHandlers,
-            @inject(GameConfigStore) private readonly gameConfigStore: GameConfigStore
+            @inject(GameConfigStore) private readonly gameConfigStore: GameConfigStore,
+            @inject(GameSetting) protected readonly gameSetting: GameSetting
         ) {}
 
         handle() {
@@ -34,12 +48,12 @@ export namespace ConnectionHandlers {
             this.connectionStore.send(GameClientEmitMessage.inGame, null);
         }
 
-        handleGateway(gameName?: string) {
+        handleGateway() {
             if (this.gameConfigStore.initialized) {
                 return;
             }
             this.roundRunning.stopRunner();
-            this.connectionStore.send(GameClientEmitMessage.inGame, gameName);
+            this.connectionStore.send(GameClientEmitMessage.inGame, this.gameSetting.gameName);
         }
     }
 
@@ -63,25 +77,31 @@ export namespace ConnectionHandlers {
 
     @injectable()
     export class CloseConnectHandler implements IHandler<void> {
-        constructor(@inject(ConnectionStore) private readonly connectionStore: ConnectionStore) {}
+        constructor(
+            @inject(ConnectionStore) private readonly connectionStore: ConnectionStore,
+            @inject(GameSetting) protected readonly gameSetting: GameSetting
+        ) {}
 
         handle() {
             this.connectionStore.closeSocket();
             this.connectionStore.reset();
         }
 
-        handleGateway(gameName: string) {
-            this.connectionStore.closeSocketGateway(gameName);
+        handleGateway() {
+            this.connectionStore.closeSocketGateway(this.gameSetting.gameName);
             this.connectionStore.reset();
         }
     }
 
     @injectable()
     export class SignInHandler {
-        constructor(@inject(ConnectionStore) protected readonly store: ConnectionStore) {}
+        constructor(
+            @inject(ConnectionStore) protected readonly store: ConnectionStore,
+            @inject(GameSetting) protected readonly gameSetting: GameSetting
+        ) {}
 
-        handle(gameName: string) {
-            this.store.signIn(gameName);
+        handle() {
+            this.store.signIn(this.gameSetting.gameName, this.gameSetting?.serviceName);
         }
     }
 }
