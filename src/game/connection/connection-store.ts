@@ -36,6 +36,11 @@ export type TMessageEmit = {
     serviceName?: string;
 };
 
+export type TConnectionStatus = {
+    isConnected: boolean;
+    isAuthorized: boolean;
+};
+
 @injectable()
 export class ConnectionStore {
     constructor(
@@ -256,5 +261,12 @@ export class ConnectionStore {
         this.isConnectFailed = false;
         this.signedIn = false;
         this.isDisconnect = false;
+    }
+
+    getConnectionStatus() {
+        return {
+            isConnected: this.isConnected,
+            isAuthorized: this.authStore.isAuthorized,
+        };
     }
 }
