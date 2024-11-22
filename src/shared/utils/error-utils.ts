@@ -195,11 +195,4 @@ export namespace ErrorUtils {
     export const isConnectFailed = (errorCode: string): boolean => {
         return errorCode === "SB0010";
     };
-
-    export const getTranslateMessage = (errorCode: string, system: number, gameName: string) => {
-        const option = { errorCode };
-
-        const key = parseErrorCode(errorCode, false, system);
-        return Translator.translate(key, option);
-    };
 }

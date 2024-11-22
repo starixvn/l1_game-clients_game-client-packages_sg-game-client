@@ -13,6 +13,7 @@ const { ErrorUtils } = utils;
 
 @injectable()
 export class ErrorHandlers implements IMultipleHandlers {
+    timeout: NodeJS.Timeout;
     constructor(
         @inject(MainPlayerStore) protected readonly mainPlayerStore: MainPlayerStore,
         @inject(NoticeStore) protected readonly noticeStore: NoticeStore,
@@ -56,28 +57,13 @@ export class ErrorHandlers implements IMultipleHandlers {
 
     handleErrorCode(errorCode: string) {
         const errorCodeString = errorCode.toString();
-        if (ErrorUtils.isSessionTimeoutError(errorCodeString)) {
-            this.authStore.errorCode = errorCodeString;
-
-            return;
-        }
 
         if (ErrorUtils.isConnectFailed(errorCodeString)) {
-            setTimeout(() => {
+            this.timeout && clearTimeout(this.timeout);
+            this.timeout = setTimeout(() => {
                 this.connectionStore.isConnectFailed = true;
             }, 1000);
-
-            return;
         }
-
-        const text = ErrorUtils.getTranslateMessage(errorCode, this.getSystem(), this.gameSetting.name);
-        this.noticeStore.addNotice({
-            message: text,
-            title: Translator.commonTranslate("notice"),
-            type: NoticeType.Error,
-            onClose: null,
-            noticeInfo: NoticeInfo.ApiError,
-        });
     }
 
     eventHandleList = [
