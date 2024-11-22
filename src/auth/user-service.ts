@@ -12,7 +12,9 @@ export class UserService {
     readonly userServiceClient: UserServiceClient;
 
     constructor(@inject(SiteConfigs) protected readonly siteConfigs: SiteConfigs) {
-        const path = this.siteConfigs?.subDirectory ? `/${this.siteConfigs.subDirectory}/livepageuser` : "/livepageuser";
+        const path = this.siteConfigs?.subDirectory
+            ? `/${this.siteConfigs.subDirectory}/${this.siteConfigs.userServicePath}`
+            : `/${this.siteConfigs.userServicePath}`;
         const url = this.siteConfigs.isDev ? this.siteConfigs.userServiceUrlDev : UrlUtils.buildUrlWithPath(path, this.siteConfigs);
 
         this.userServiceClient = new UserServiceClient(url);
