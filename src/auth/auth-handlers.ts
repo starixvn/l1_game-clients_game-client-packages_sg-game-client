@@ -190,6 +190,12 @@ export namespace AuthHandlers {
         }
 
         async handleSignName(username: string) {
+            if (!this.session || !this.username) {
+                const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo;
+                this.session = sessionInfo?.session;
+                this.username = sessionInfo?.username;
+            }
+
             const response = (await this.userService.signName(this.session, this.username, username)) as IAuthorizeResponse;
             if (response.authorized) {
                 this.authStore.isShowSignName = false;
