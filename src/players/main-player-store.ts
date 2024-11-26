@@ -44,7 +44,7 @@ export class MainPlayerStore {
         this.setBalance(user.red, user.scoins, user.availSpins);
         this.currency = user.currency;
         this.setOfferGames(user?.offerGames as OfferGame[]);
-        this.fractionalOddsFormat = user.fractionalOddsFormat;
+        this.setFractionalOddsFormat(user?.fractionalOddsFormat);
         this.displayPlayerCurrency = user.isDisplayPlayerCurrency;
         this.disableJackpotGames = user.disableJackpotGames;
         this.rate = user.rate;
@@ -76,7 +76,17 @@ export class MainPlayerStore {
     }
 
     loadOfferGames() {
-        const offerGames = StorageManager.get(localStorageKeys.offerGames) as OfferGame[];
-        offerGames && this.setOfferGames(offerGames);
+        const storedValue = StorageManager.get(localStorageKeys.offerGames) as OfferGame[];
+        storedValue && this.setOfferGames(storedValue);
+    }
+
+    setFractionalOddsFormat(fractionalOddsFormat = false) {
+        this.fractionalOddsFormat = fractionalOddsFormat;
+        StorageManager.set(localStorageKeys.fractionalOddsFormat, String(fractionalOddsFormat));
+    }
+
+    loadFractionalOddsFormat() {
+        const storedValue = StorageManager.get(localStorageKeys.fractionalOddsFormat);
+        storedValue && this.setFractionalOddsFormat(storedValue === "true");
     }
 }

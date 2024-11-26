@@ -289,6 +289,7 @@ export namespace AuthHandlers {
                 this.appStore.loadDirectMode();
                 this.appStore.loadApp();
                 this.mainPlayerStore.loadOfferGames();
+                this.mainPlayerStore.loadFractionalOddsFormat();
                 await this.handleAuthorize();
             }
         }

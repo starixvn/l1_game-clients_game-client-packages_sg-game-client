@@ -67,6 +67,7 @@ export class AuthStore {
     setAuthSSOStore(response: SSOResponse) {
         this.session = response.ss;
         response?.offerGames && this.mainPlayerStore.setOfferGames(response?.offerGames);
+        this.mainPlayerStore.setFractionalOddsFormat(response?.fractionalOddsFormat);
         this.setAuthStore(response);
     }
 

@@ -122,4 +122,5 @@ export const localStorageKeys = {
     operator: "op",
     token: "token",
     offerGames: "ogs",
+    fractionalOddsFormat: "fo-format",
 };
