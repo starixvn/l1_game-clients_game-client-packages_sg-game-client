@@ -62,6 +62,7 @@ export class ErrorHandlers implements IMultipleHandlers {
             this.timeout && clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
                 this.connectionStore.isConnectFailed = true;
+                this.connectionStore.closeSocketGateway();
             }, 1000);
         }
     }

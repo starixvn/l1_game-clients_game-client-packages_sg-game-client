@@ -147,7 +147,8 @@ export class ConnectionStore {
         this.send(GameClientEmitMessage.Signin.eventName, message);
     }
 
-    joinGame(gameName: string, serviceName?: string) {
+    joinGame() {
+        const { gameName, serviceName } = this.gameSetting;
         const { session, username, system } = (StorageManager.get(localStorageKeys.session) as ISessionInfo) || {};
 
         const payload = new GameClientEmitMessage.JoinGame();
@@ -246,8 +247,8 @@ export class ConnectionStore {
         this.connection?.disconnect();
     }
 
-    closeSocketGateway(gameName: string) {
-        this.connection?.emit("outGame", gameName);
+    closeSocketGateway() {
+        this.connection?.emit("outGame", this.gameSetting?.gameName);
     }
 
     reset() {

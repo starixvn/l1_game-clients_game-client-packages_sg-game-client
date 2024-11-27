@@ -121,7 +121,7 @@ describe("CrashBetHandler", () => {
         beforeEach(() => {
             autoCashOutStore.enable = false;
             autoCashOutStore.multiplier = 1.5;
-            roundStore.clientRoundId = 1;
+            roundStore._clientRoundId = 1;
             createBetDataSpy = jest.spyOn(BetHandlerBase.prototype, "createBetData").mockReturnValue({});
 
             undefinedAutoCashOutData = {

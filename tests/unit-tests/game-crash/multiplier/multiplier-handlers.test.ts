@@ -98,8 +98,8 @@ describe("MultiplierHandlers", () => {
             // Arrange
             const roundTime = 12;
             multiplierHandlers.handleRocketState = jest.fn();
-            roundTimeStore.placingBet = 10;
-            roundTimeStore.startRound = 1;
+            roundTimeStore.gameSetting.durations.placingBet = 10;
+            roundTimeStore.gameSetting.durations.startRound = 1;
 
             // Act
             multiplierHandlers.changeRocketState(roundTime);

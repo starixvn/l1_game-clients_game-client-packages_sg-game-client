@@ -21,13 +21,10 @@ export namespace ConnectionHandlers {
 
     @injectable()
     export class JoinGameHandler {
-        constructor(
-            @inject(ConnectionStore) protected readonly connectionStore: ConnectionStore,
-            @inject(GameSetting) protected readonly gameSetting: GameSetting
-        ) {}
+        constructor(@inject(ConnectionStore) protected readonly connectionStore: ConnectionStore) {}
 
         handle() {
-            this.connectionStore.joinGame(this.gameSetting.gameName, this.gameSetting?.serviceName);
+            this.connectionStore.joinGame();
         }
     }
 
@@ -36,8 +33,7 @@ export namespace ConnectionHandlers {
         constructor(
             @inject(ConnectionStore) private readonly connectionStore: ConnectionStore,
             @inject(RoundRunningHandlers) private readonly roundRunning: RoundRunningHandlers,
-            @inject(GameConfigStore) private readonly gameConfigStore: GameConfigStore,
-            @inject(GameSetting) protected readonly gameSetting: GameSetting
+            @inject(GameConfigStore) private readonly gameConfigStore: GameConfigStore
         ) {}
 
         handle() {
@@ -53,7 +49,6 @@ export namespace ConnectionHandlers {
                 return;
             }
             this.roundRunning.stopRunner();
-            // this.connectionStore.send(GameClientEmitMessage.inGame, this.gameSetting.gameName);
             this.connectionStore.send(GameClientEmitMessage.inGame, { id: "123" });
         }
     }
@@ -78,10 +73,7 @@ export namespace ConnectionHandlers {
 
     @injectable()
     export class CloseConnectHandler implements IHandler<void> {
-        constructor(
-            @inject(ConnectionStore) private readonly connectionStore: ConnectionStore,
-            @inject(GameSetting) protected readonly gameSetting: GameSetting
-        ) {}
+        constructor(@inject(ConnectionStore) private readonly connectionStore: ConnectionStore) {}
 
         handle() {
             this.connectionStore.closeSocket();
@@ -89,7 +81,7 @@ export namespace ConnectionHandlers {
         }
 
         handleGateway() {
-            this.connectionStore.closeSocketGateway(this.gameSetting.gameName);
+            this.connectionStore.closeSocketGateway();
             this.connectionStore.reset();
         }
     }
