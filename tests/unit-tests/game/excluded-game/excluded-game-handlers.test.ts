@@ -4,9 +4,11 @@ import { AuthStore } from "../../../../src/auth/auth-store";
 import { NoPermissionHandlers } from "../../../../src/game/excluded-game";
 import { NoticeStore } from "../../../../src/game/notices";
 import { PlayerSelectionHandlers, PlayerSelectionStore } from "../../../../src/game/player-selections";
+import { MainPlayerStore } from "../../../../src/players/main-player-store";
 import { GameServiceMessage } from "../../../../src/shared";
 import { gameSettings } from "../../container.test";
 import { AppTypes } from "./../../../../src/shared/constants/app-type";
+import { stub } from "jest-auto-stub";
 
 jest.mock("../../../../src/shared/utils/localization-manager", () => {
     return {
@@ -21,11 +23,15 @@ jest.mock("../../../../src/shared/utils/localization-manager", () => {
 
 describe("ExcludedGameHandlers tests", () => {
     let noticeStore: NoticeStore, backToOperatorLobby: AppHandlers.BackToOperatorLobby, handler: NoPermissionHandlers, authStore: AuthStore;
+    let mainPlayerStore: MainPlayerStore;
+    beforeEach(() => {
+        mainPlayerStore = stub<MainPlayerStore>();
+    });
 
     it("has name is equal notpermitted", () => {
         // arrange
         noticeStore = new NoticeStore();
-        authStore = new AuthStore();
+        authStore = new AuthStore(mainPlayerStore);
         backToOperatorLobby = new AppHandlers.BackToOperatorLobby(
             new AppStore(),
             new PlayerSelectionHandlers.ClearHandlers(new PlayerSelectionStore())
@@ -41,7 +47,7 @@ describe("ExcludedGameHandlers tests", () => {
         test("should add notice", () => {
             // arrange
             noticeStore = new NoticeStore();
-            authStore = new AuthStore();
+            authStore = new AuthStore(mainPlayerStore);
             authStore.system = AppTypes.Club;
             backToOperatorLobby = new AppHandlers.BackToOperatorLobby(
                 new AppStore(),

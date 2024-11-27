@@ -12,6 +12,7 @@ jest.mock("../../../../src/shared/utils/localization-manager", () => {
     };
 });
 describe("ErrorUtils", () => {
+    const gameName = "test";
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -64,7 +65,7 @@ describe("ErrorUtils", () => {
                 errorCode: "1000",
             });
 
-            const result = ErrorUtils.getErrorMessage(notice, system);
+            const result = ErrorUtils.getErrorMessage(notice, system, gameName);
 
             expect(result).toBe(expected);
         });
@@ -74,10 +75,10 @@ describe("ErrorUtils", () => {
         it("should return a string with the correct error message", () => {
             const hedgeBetGroup = ["choice1", "choice2"];
 
-            const result = ErrorUtils.createOptionForHedgeBetGroup(hedgeBetGroup);
+            const result = ErrorUtils.createOptionForHedgeBetGroup(hedgeBetGroup, gameName);
 
-            expect(result["betChoice1"]).toEqual("glossary_choice1");
-            expect(result["betChoice2"]).toEqual("glossary_choice2");
+            expect(result["betChoice1"]).toEqual(`${gameName}.glossary_choice1`);
+            expect(result["betChoice2"]).toEqual(`${gameName}.glossary_choice2`);
         });
     });
 

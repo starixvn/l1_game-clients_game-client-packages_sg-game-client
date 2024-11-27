@@ -1,13 +1,17 @@
 import { AuthStore } from "../../../../src/auth";
+import { MainPlayerStore } from "../../../../src/players/main-player-store";
 import { GameServiceMessage } from "../../../../src/shared";
 import { AccountClosedHandlers } from "./../../../../src/game/account-closed/account-closed-handlers";
+import { stub } from "jest-auto-stub";
 
 describe("AccountClosedHandlers", () => {
     let accountClosedHandlers: AccountClosedHandlers;
     let authStore: AuthStore;
+    let mainPlayerStore: MainPlayerStore;
 
     beforeEach(() => {
-        authStore = new AuthStore();
+        mainPlayerStore = stub<MainPlayerStore>();
+        authStore = new AuthStore(mainPlayerStore);
         accountClosedHandlers = new AccountClosedHandlers(authStore);
     });
 

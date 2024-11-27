@@ -1,6 +1,6 @@
 import { stub } from "jest-auto-stub";
 import { ConnectionHandlers, ConnectionStore } from "../../../../src/game/connection";
-import { GameConfigStore } from "../../../../src/game/game-configs";
+import { GameConfigStore, GameSetting } from "../../../../src/game/game-configs";
 import { RoundRunningHandlers } from "../../../../src/game/rounds";
 import { GameClientEmitMessage } from "../../../../src/shared";
 
@@ -18,6 +18,15 @@ jest.mock("socket.io-client/dist/socket.io.msgpack.min.js", () => ({
 }));
 
 describe("Connection Handlers tests", () => {
+    let gameSetting: GameSetting;
+    beforeEach(() => {
+        gameSetting = stub<GameSetting>();
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe("Connect", () => {
         it("should call initConnection", () => {
             // arrange
@@ -38,7 +47,7 @@ describe("Connection Handlers tests", () => {
             const connectionStore = stub<ConnectionStore>();
             const roundRunning = stub<RoundRunningHandlers>();
             const gameConfigStore = stub<GameConfigStore>({ initialized: false });
-            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore);
+            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore, gameSetting);
 
             // act
             handler.handle();
@@ -52,7 +61,7 @@ describe("Connection Handlers tests", () => {
             const connectionStore = stub<ConnectionStore>();
             const roundRunning = stub<RoundRunningHandlers>();
             const gameConfigStore = stub<GameConfigStore>({ initialized: true });
-            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore);
+            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore, gameSetting);
 
             // act
             handler.handle();

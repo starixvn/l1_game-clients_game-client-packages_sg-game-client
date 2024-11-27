@@ -48,7 +48,7 @@ export class ConnectionStore {
         makeAutoObservable(this);
     }
 
-    connection: Socket = null;
+    connection: Socket | null = null;
     isConnected: boolean = null;
     isConnectFailed = false;
     signedIn = false;
@@ -104,7 +104,7 @@ export class ConnectionStore {
         connection.on(disconnect, this.onDisconnected.bind(this));
     }
 
-    protected onConnected() {
+    onConnected() {
         this.isConnected = true;
         this.isConnectFailed = false;
         this.connection.onAny(this.onHandleData.bind(this));
@@ -113,7 +113,7 @@ export class ConnectionStore {
         }
     }
 
-    protected onHandleData(event: string, data: any) {
+    onHandleData(event: string, data: any) {
         if (event?.toLocaleLowerCase() === this.gameSetting?.name.toLocaleLowerCase() || event?.toLocaleLowerCase() === "message") {
             Object.entries(data).forEach((entry) => {
                 const [key, value] = entry;
@@ -163,11 +163,11 @@ export class ConnectionStore {
         this.send(GameClientEmitMessage.JoinGame.eventName, message);
     }
 
-    protected onSignedIn() {
+    onSignedIn() {
         this.signedIn = true;
     }
 
-    protected onConnectFailed(error?: Error) {
+    onConnectFailed(error?: Error) {
         this.isConnectFailed = true;
         this.isInstant() && this.postDisconnectMessage();
         this.handleConnectionStatus(false, error);
@@ -179,7 +179,7 @@ export class ConnectionStore {
         this.handleConnectionStatus(false);
     }
 
-    protected handleDisconnectionReason(reason = "") {
+    handleDisconnectionReason(reason = "") {
         if (this.isServerDisconnect(reason)) {
             this.isDisconnect = true;
             return;
@@ -190,7 +190,7 @@ export class ConnectionStore {
         }
     }
 
-    protected handleConnectionStatus(connected: boolean, error?: Error) {
+    handleConnectionStatus(connected: boolean, error?: Error) {
         this.isConnected = connected;
         this.signedIn = connected;
         if (this.connection) {
@@ -204,7 +204,7 @@ export class ConnectionStore {
         error && this.logError(error);
     }
 
-    protected handleDisconnectInstant(reason: string | unknown) {
+    handleDisconnectInstant(reason: string | unknown) {
         if (this.shouldPostDisconnectMessage(reason)) {
             this.postDisconnectMessage();
         }

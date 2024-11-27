@@ -1,11 +1,13 @@
 import { stub } from "jest-auto-stub";
-import { io } from "socket.io-client/dist/socket.io.js";
+import { io, Socket } from "socket.io-client";
+import * as MsgpackParser from "socket.io-msgpack-parser";
 import { AuthStore } from "../../../../src/auth/auth-store";
 import { ConnectionStore, events } from "../../../../src/game/connection";
 import { GameClientEmitMessage, Mediator } from "../../../../src/shared";
 import { BrowserDomUtils, StorageManager, UrlUtils, sentryLogger } from "../../../../src/shared/utils";
 import { gameSettings, siteConfigs } from "../../container.test";
 import { AppTypes } from "./../../../../src/shared/constants/app-type";
+import { GatewayConnectionStore } from "../../../../src/gateway-connection/gateway-connection-store";
 
 jest.mock("../../../../src/shared/utils", () => ({
     StorageManager: { get: jest.fn() },
@@ -18,6 +20,7 @@ jest.mock("../../../../src/shared/utils", () => ({
     BrowserDomUtils: { postMessageToParent: jest.fn() },
 }));
 jest.mock("mobx");
+
 const optionsDefault = {
     path: "/socket.io",
     socketUri: "socketUri",
@@ -25,21 +28,36 @@ const optionsDefault = {
     upgrade: false,
     forceNew: true,
 };
-jest.mock("socket.io-client/dist/socket.io.js", () => ({
-    io: jest.fn().mockReturnValue({}),
-}));
-jest.mock("socket.io-client/dist/socket.io.msgpack.min.js", () => ({
-    io: jest.fn().mockReturnValue({}),
+const mSocket = {
+    on: jest.fn(),
+    emit: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    onAny: jest.fn(),
+};
+
+jest.mock("socket.io-client", () => {
+    return {
+        io: jest.fn(() => mSocket),
+        Socket: jest.fn(() => mSocket),
+    };
+});
+
+jest.mock("socket.io-msgpack-parser", () => ({
+    encode: jest.fn(),
+    decode: jest.fn(),
 }));
 
 describe("ConnectionStore tests", () => {
     let store: ConnectionStore;
     let mediator: Mediator;
     let authStore: AuthStore;
+    let gatewayStore: GatewayConnectionStore;
     beforeEach(() => {
         mediator = stub<Mediator>();
         authStore = stub<AuthStore>();
-        store = new ConnectionStore(mediator, gameSettings, siteConfigs, authStore);
+        gatewayStore = stub<GatewayConnectionStore>();
+        store = new ConnectionStore(mediator, gameSettings, siteConfigs, authStore, gatewayStore);
         console.log(store);
     });
 
@@ -72,7 +90,7 @@ describe("ConnectionStore tests", () => {
             store.initConnection();
 
             // assert
-            expect(store.connection).toEqual({});
+            expect(store.connection).toEqual(mSocket);
         });
         it("should call init base listener", () => {
             // act
@@ -94,12 +112,16 @@ describe("ConnectionStore tests", () => {
             it("should call ioMsgpack with expected arguments", () => {
                 // arrange
                 store["siteConfigs"].enableMsgpackParserAllGames = true;
+                const expectedOptions = {
+                    ...optionsDefault,
+                    parser: MsgpackParser,
+                };
 
                 // act
                 store.initConnection();
 
                 // assert
-                expect(ioMsgPack).toHaveBeenCalledWith("socketUri", optionsDefault);
+                expect(io).toHaveBeenCalledWith("socketUri", expectedOptions);
             });
         });
         describe("when enableMsgpackParserAllGames = false", () => {
@@ -118,19 +140,17 @@ describe("ConnectionStore tests", () => {
 
     describe("initBaseListener", () => {
         describe("when connection not null", () => {
+            const mockOn = jest.fn();
             beforeEach(() => {
-                store.connection = {
-                    on: jest.fn(),
-                };
+                store.connection = { on: mockOn, onAny: jest.fn() } as unknown as Socket;
             });
             it("should init listeners onConnected", () => {
                 // act
                 store.initBaseListener();
 
                 // assert
-                expect(store.connection.on).toHaveBeenCalled();
-                expect(store.connection.on.mock.calls[0][0]).toBe(events.connect);
-                expect(store.connection.on.mock.calls[0][1].toString()).toBe(store.onConnected.bind(store).toString());
+                expect(mockOn).toHaveBeenCalled();
+                expect(mockOn).toHaveBeenCalledWith(events.connect, expect.any(Function));
             });
 
             it("should init listeners onSignedIn", () => {
@@ -138,9 +158,8 @@ describe("ConnectionStore tests", () => {
                 store.initBaseListener();
 
                 // assert
-                expect(store.connection.on).toHaveBeenCalled();
-                expect(store.connection.on.mock.calls[1][0]).toBe(events.signedIn);
-                expect(store.connection.on.mock.calls[1][1].toString()).toBe(store.onSignedIn.bind(store).toString());
+                expect(mockOn).toHaveBeenCalled();
+                expect(mockOn).toHaveBeenCalledWith(events.signedIn, expect.any(Function));
             });
 
             it("should init listeners onConnectFailed and event is connect_error", () => {
@@ -148,9 +167,8 @@ describe("ConnectionStore tests", () => {
                 store.initBaseListener();
 
                 // assert
-                expect(store.connection.on).toHaveBeenCalled();
-                expect(store.connection.on.mock.calls[2][0]).toBe(events.connectError);
-                expect(store.connection.on.mock.calls[2][1].toString()).toBe(store.onConnectFailed.bind(store).toString());
+                expect(mockOn).toHaveBeenCalled();
+                expect(mockOn).toHaveBeenCalledWith(events.connectError, expect.any(Function));
             });
 
             it("should init listeners onConnectFailed and event is connect_failed", () => {
@@ -158,18 +176,16 @@ describe("ConnectionStore tests", () => {
                 store.initBaseListener();
 
                 // assert
-                expect(store.connection.on).toHaveBeenCalled();
-                expect(store.connection.on.mock.calls[3][0]).toBe(events.connectFailed);
-                expect(store.connection.on.mock.calls[3][1].toString()).toBe(store.onConnectFailed.bind(store).toString());
+                expect(mockOn).toHaveBeenCalled();
+                expect(mockOn).toHaveBeenCalledWith(events.connectFailed, expect.any(Function));
             });
             it("should init listeners onDisconnected and event is disconnect", () => {
                 // act
                 store.initBaseListener();
 
                 // assert
-                expect(store.connection.on).toHaveBeenCalled();
-                expect(store.connection.on.mock.calls[4][0]).toBe(events.disconnect);
-                expect(store.connection.on.mock.calls[4][1].toString()).toBe(store.onDisconnected.bind(store).toString());
+                expect(mockOn).toHaveBeenCalled();
+                expect(mockOn).toHaveBeenCalledWith(events.disconnect, expect.any(Function));
             });
         });
     });
@@ -179,13 +195,10 @@ describe("ConnectionStore tests", () => {
         beforeAll(() => {
             (StorageManager.get as jest.Mock).mockReturnValue(sessionInfo);
         });
-
+        beforeEach(() => {
+            store.connection = mSocket as unknown as Socket;
+        });
         it("should set isConnected true", () => {
-            // arrange
-            store.connection = {};
-            store.connection.onAny = jest.fn();
-            store.connection.emit = jest.fn();
-
             // act
             store.onConnected();
 
@@ -194,11 +207,6 @@ describe("ConnectionStore tests", () => {
         });
 
         it("should set isConnectFailed false", () => {
-            // arrange
-            store.connection = {};
-            store.connection.onAny = jest.fn();
-            store.connection.emit = jest.fn();
-
             // act
             store.onConnected();
 
@@ -207,24 +215,15 @@ describe("ConnectionStore tests", () => {
         });
 
         it("should call connection onAny", () => {
-            // arrange
-            store.connection = {};
-            store.connection.onAny = jest.fn();
-            store.connection.emit = jest.fn();
-
             // act
             store.onConnected();
 
             // assert
-            expect(store.connection.onAny.mock.calls[0][0].toString()).toBe(store.onHandleData.bind(store).toString());
+            expect(mSocket.onAny).toHaveBeenCalledWith(expect.any(Function));
         });
 
         it("should call signin", () => {
             // arrange
-            store.connection = {};
-            store.connection.onAny = jest.fn();
-            store.connection.emit = jest.fn();
-
             const payload = new GameClientEmitMessage.Signin();
             payload.ss = sessionInfo?.session;
             payload.username = sessionInfo?.username;
@@ -234,7 +233,7 @@ describe("ConnectionStore tests", () => {
             store.onConnected();
 
             // assert
-            expect(store.connection.emit).toHaveBeenCalledWith(GameClientEmitMessage.Signin.eventName, payload);
+            expect(mSocket.emit).toHaveBeenCalledWith(GameClientEmitMessage.Signin.eventName, payload);
         });
     });
 
@@ -292,9 +291,9 @@ describe("ConnectionStore tests", () => {
 
     describe("onConnectFailed", () => {
         beforeEach(() => {
-            store.connection = {};
-            store.connection.disconnect = jest.fn();
+            store.connection = mSocket as any;
         });
+
         it("should set isConnectFailed is true", () => {
             // act
             store.onConnectFailed();
@@ -324,7 +323,7 @@ describe("ConnectionStore tests", () => {
             store.onConnectFailed();
 
             // assert
-            expect(store.connection.disconnect).toHaveBeenCalled();
+            expect(mSocket.disconnect).toHaveBeenCalled();
         });
 
         it("should log error", () => {
@@ -341,8 +340,7 @@ describe("ConnectionStore tests", () => {
 
     describe("onDisconnected", () => {
         beforeEach(() => {
-            store.connection = {};
-            store.connection.disconnect = jest.fn();
+            store.connection = mSocket as any;
         });
 
         it("should set isConnected is false", () => {
@@ -366,7 +364,7 @@ describe("ConnectionStore tests", () => {
             store.onDisconnected();
 
             // assert
-            expect(store.connection.disconnect).toHaveBeenCalled();
+            expect(mSocket.disconnect).toHaveBeenCalled();
         });
 
         describe("when disconnect with reason is not from client", () => {
@@ -429,7 +427,7 @@ describe("ConnectionStore tests", () => {
     describe("reset", () => {
         it("should reset all stores", () => {
             // arrange
-            store.connection = {};
+            store.connection = null;
             store.isConnected = false;
             store.isConnected = true;
             store.signedIn = true;

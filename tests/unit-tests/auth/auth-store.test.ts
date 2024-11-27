@@ -1,6 +1,8 @@
 import { SSOResponse } from "@sg/sg-user-service-client/dist/auth";
 import { AuthStore, ISessionInfo } from "../../../src/auth";
 import { StorageManager, localStorageKeys } from "../../../src/shared/utils/storage-manager";
+import { MainPlayerStore } from "../../../src/players/main-player-store";
+import { stub } from "jest-auto-stub";
 
 const now = new Date("2023-01-01");
 jest.useFakeTimers().setSystemTime(now);
@@ -10,10 +12,14 @@ jest.mock("../../../src/shared/utils/storage-manager", () => ({
 }));
 
 describe("AuthStore tests", () => {
+    let mainPlayerStore: MainPlayerStore;
+    beforeEach(() => {
+        mainPlayerStore = stub<MainPlayerStore>();
+    });
     describe("setAuthSSOStore", () => {
         it("should set store sso", () => {
             // arrange
-            const store = new AuthStore();
+            const store = new AuthStore(mainPlayerStore);
             const ssoResponse = {
                 isAuthenticated: true,
                 username: "user",
@@ -41,7 +47,7 @@ describe("AuthStore tests", () => {
     describe("getSessionInfo", () => {
         it("should return session info", () => {
             // arrange
-            const store = new AuthStore();
+            const store = new AuthStore(mainPlayerStore);
             store.isAuthenticated = true;
             store.username = "username";
             store.language = "vi-VN";
@@ -71,7 +77,7 @@ describe("AuthStore tests", () => {
         let store: AuthStore;
         beforeEach(() => {
             StorageManager.remove = jest.fn();
-            store = new AuthStore();
+            store = new AuthStore(mainPlayerStore);
         });
         it("should set reset username, session, isAuthenticated and set session timeout", () => {
             // arrange
@@ -100,7 +106,7 @@ describe("AuthStore tests", () => {
     describe("setAuthStoreFromStorage", () => {
         it("should set store", () => {
             // arrange
-            const store = new AuthStore();
+            const store = new AuthStore(mainPlayerStore);
             const info: ISessionInfo = {
                 isAuthenticated: true,
                 username: "user",
@@ -127,7 +133,7 @@ describe("AuthStore tests", () => {
     describe("setAuthStoreFromUrlParam", () => {
         it("should set store", () => {
             // arrange
-            const store = new AuthStore();
+            const store = new AuthStore(mainPlayerStore);
             const params = {
                 ss: "session",
                 uname: "username",

@@ -5,6 +5,8 @@ import { NoticeStore } from "../../../../src/game/notices";
 import { MainPlayerStore } from "../../../../src/players";
 import { GameServiceMessage } from "../../../../src/shared";
 import { ErrorUtils } from "../../../../src/shared/utils/error-utils";
+import { ConnectionStore } from "../../../../src/game/connection/connection-store";
+import { GameSetting } from "../../../../src/game/game-configs";
 
 jest.mock("../../../../src/shared/utils/localization-manager", () => ({
     Translator: { translate: jest.fn(), gameTranslate: jest.fn(), commonTranslate: jest.fn().mockImplementation((key, option) => key) },
@@ -20,15 +22,19 @@ describe("ErrorHandlers test", () => {
     let mainPlayerStore: MainPlayerStore;
     let authStore: AuthStore;
     let errorStore: ErrorStore;
+    let gameSetting: GameSetting;
+    let connectionStore: ConnectionStore;
     beforeAll(() => {
         noticeStore = stub<NoticeStore>();
         mainPlayerStore = stub<MainPlayerStore>();
         authStore = stub<AuthStore>();
         errorStore = stub<ErrorStore>();
+        connectionStore = stub<ConnectionStore>();
+        gameSetting = stub<GameSetting>();
     });
 
     beforeEach(() => {
-        instance = new ErrorHandlers(mainPlayerStore, noticeStore, authStore, errorStore);
+        instance = new ErrorHandlers(mainPlayerStore, noticeStore, authStore, errorStore, gameSetting, connectionStore);
     });
 
     afterEach(() => {

@@ -11,13 +11,14 @@ export const gameSettings = {
         placingBet: 30,
     },
     numberOfRoundHistory: 100,
+    gameName: "SeDie",
 };
 
 export const siteConfigs: SiteConfigs = {
     isDev: true,
     systemType: "SG",
     ssl: false,
-    serverDomain:"localhost:5002",
+    serverDomain: "localhost:5002",
     subDomain: "",
     env: "LOCAL",
     subGuideDomain: "l1-guide",
@@ -31,6 +32,7 @@ export const siteConfigs: SiteConfigs = {
         route: "",
     },
     mainObserverNamespace: "SeDie",
+    userServicePath: "user",
 };
 
 const containerOptions: IContainerOptions = {

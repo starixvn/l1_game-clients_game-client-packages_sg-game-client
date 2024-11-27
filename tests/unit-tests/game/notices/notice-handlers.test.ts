@@ -3,6 +3,7 @@ import { AuthStore } from "../../../../src/auth/auth-store";
 import { NoticeHandlers, NoticeStore } from "../../../../src/game/notices";
 import { RoundStore } from "../../../../src/game/rounds/round-store";
 import { GameServiceMessage } from "../../../../src/shared";
+import { GameSetting } from "../../../../src/game/game-configs";
 jest.mock("../../../../src/shared/utils/localization-manager", () => ({
     Translator: { translate: jest.fn(), gameTranslate: jest.fn(), commonTranslate: jest.fn().mockImplementation((key, option) => key) },
 }));
@@ -12,10 +13,12 @@ describe("NoticeHandlers test", () => {
     let roundStore: RoundStore;
     let noticeStore: NoticeStore;
     let authStore: AuthStore;
+    let gameSetting: GameSetting;
     beforeAll(() => {
         roundStore = stub<RoundStore>();
         noticeStore = stub<NoticeStore>();
-        instance = new NoticeHandlers(roundStore, noticeStore, authStore);
+        gameSetting = stub<GameSetting>();
+        instance = new NoticeHandlers(roundStore, noticeStore, authStore, gameSetting);
     });
 
     afterEach(() => {

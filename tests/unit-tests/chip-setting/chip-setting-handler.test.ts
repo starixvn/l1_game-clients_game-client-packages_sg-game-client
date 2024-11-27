@@ -2,14 +2,18 @@ import { SettingResponse } from "@sg/sg-user-service-client/dist/setting";
 import { AuthStore, UserService } from "../../../src/auth";
 import { ChipSettingHandler, ChipSettingStore } from "../../../src/chip-setting";
 import { siteConfigs } from "../container.test";
+import { MainPlayerStore } from "../../../src/players/main-player-store";
+import { stub } from "jest-auto-stub";
 
 describe("ChipSettingHandler", () => {
     let userServiceMock: UserService;
     let chipSettingStoreMock: ChipSettingStore;
     let chipSettingHandler: ChipSettingHandler;
     let authStoreMock: AuthStore;
+    let mainPlayerStore: MainPlayerStore;
 
     beforeEach(() => {
+        mainPlayerStore = stub<MainPlayerStore>();
         userServiceMock = new UserService(siteConfigs);
         userServiceMock.getChipSetting = jest.fn().mockResolvedValue({
             success: true,
@@ -22,7 +26,7 @@ describe("ChipSettingHandler", () => {
 
         chipSettingStoreMock = new ChipSettingStore();
         chipSettingStoreMock.updateChipColor = jest.fn();
-        authStoreMock = new AuthStore();
+        authStoreMock = new AuthStore(mainPlayerStore);
         authStoreMock.session = "abc123";
         authStoreMock.username = "testuser";
         chipSettingHandler = new ChipSettingHandler(userServiceMock, chipSettingStoreMock, authStoreMock);

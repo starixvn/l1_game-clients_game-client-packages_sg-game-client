@@ -11,6 +11,7 @@ import { RoundTimeStore } from "../../../../src/game/rounds/round-time-store";
 import { GameServiceMessage } from "../../../../src/shared";
 import { gameSettings } from "../../container.test";
 import { AppTypes } from "./../../../../src/shared/constants/app-type";
+import { MainPlayerStore } from "../../../../src/players/main-player-store";
 
 jest.mock("../../../../src/shared/utils/localization-manager", () => {
     return {
@@ -39,12 +40,14 @@ describe("DisableGameHandlers tests", () => {
         roundTimeStore: RoundTimeStore,
         backToOperatorLobby: AppHandlers.BackToOperatorLobby,
         handler: DisableGameHandlers,
-        roundRunningHandlers: RoundRunningHandlers;
+        roundRunningHandlers: RoundRunningHandlers,
+        mainPlayerStore: MainPlayerStore;
 
     beforeAll(() => {
         // arrange
         connectionStore = stub<ConnectionStore>();
-        authStore = new AuthStore();
+        mainPlayerStore = stub<MainPlayerStore>();
+        authStore = new AuthStore(mainPlayerStore);
         disabledGameStore = new DisabledGameStore();
         disabledGameStore.setGameStatus = jest.fn();
         disabledGameStore.setShowPopup = jest.fn();
