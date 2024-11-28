@@ -51,7 +51,7 @@ export class ConnectionStore {
     connection: Socket | null = null;
     isConnected: boolean = null;
     isConnectFailed = false;
-    signedIn = false;
+    isSignedIn = false;
     isDisconnect = false;
 
     initConnection(customizeOptions?: ISocketOption) {
@@ -145,6 +145,7 @@ export class ConnectionStore {
             : payload;
 
         this.send(GameClientEmitMessage.Signin.eventName, message);
+        this.onSignedIn();
     }
 
     joinGame() {
@@ -165,7 +166,7 @@ export class ConnectionStore {
     }
 
     onSignedIn() {
-        this.signedIn = true;
+        this.isSignedIn = true;
     }
 
     onConnectFailed(error?: Error) {
@@ -193,7 +194,7 @@ export class ConnectionStore {
 
     handleConnectionStatus(connected: boolean, error?: Error) {
         this.isConnected = connected;
-        this.signedIn = connected;
+        this.isSignedIn = connected;
         if (this.connection) {
             if (this.gameSetting?.isSocketGateway) {
                 this.connection.emit("outGame", this.gameSetting?.name.toLocaleLowerCase());
@@ -255,7 +256,7 @@ export class ConnectionStore {
         this.connection = null;
         this.isConnected = null;
         this.isConnectFailed = false;
-        this.signedIn = false;
+        this.isSignedIn = false;
         this.isDisconnect = false;
     }
 }
