@@ -252,6 +252,7 @@ export namespace AuthHandlers {
                 await this.handleAuthorizeWithParams(ssoInfo);
             } catch (err) {
                 this.authStore.ssoErrorMessage = Translator.commonTranslate("splash_connection_lost");
+                this.appStore.setTimeOut();
                 sentryLogger.logError(err);
             }
         }
@@ -306,6 +307,7 @@ export namespace AuthHandlers {
                 await this.handleAuthorize(response.ss, response.username);
             } else {
                 this.authStore.ssoErrorMessage = Translator.commonTranslate("splash_login_failed");
+                this.appStore.setTimeOut();
             }
         }
 
