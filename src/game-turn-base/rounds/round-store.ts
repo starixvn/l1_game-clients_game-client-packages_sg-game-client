@@ -47,6 +47,7 @@ export class RoundStore extends RoundStoreBase {
         return {
             odds: this.odds,
             fractional: this.mainPlayerStore.fractionalOddsFormat,
+            boostedChoices: [],
         };
     }
 }
