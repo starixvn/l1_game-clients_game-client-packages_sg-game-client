@@ -43,14 +43,15 @@ export class RoundStore {
         public resultHash = null,
         public ownBets = {},
         public userBetPercentage = null,
-        public betPercentage = {}
+        public betPercentage = {},
+        public boostedOdds: GameServiceMessage.BoostedOddsType = null
     ) {
-
         this.roundId = roundId;
         this.resultHash = resultHash;
         this.ownBets = ownBets;
         this.userBetPercentage = userBetPercentage;
         this.betPercentage = betPercentage;
+        this.boostedOdds = boostedOdds;
 
         makeObservable(this, {
             roundId: observable,
@@ -62,6 +63,7 @@ export class RoundStore {
             ownBets: observable,
             userBetPercentage: observable,
             betPercentage: observable,
+            boostedOdds: observable,
 
             clientRoundId: computed,
             setClientRoundId: action,
@@ -79,7 +81,6 @@ export class RoundStore {
             resetRoundStore: action,
         });
     }
-
 
     get clientRoundId() {
         const currentFinish = this.settlementStore.currentFinish;

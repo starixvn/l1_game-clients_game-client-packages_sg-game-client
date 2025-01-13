@@ -104,6 +104,11 @@ export namespace GameServiceMessage {
         [betChoice: string]: number;
     };
 
+    export type BoostedOddsType = {
+        boostedChoices: string[];
+        values: Odds;
+    };
+
     class Bets {
         [betChoice: string]: number | any;
     }
@@ -122,6 +127,10 @@ export namespace GameServiceMessage {
 
     export class BetPercentage extends Bets {
         static eventName = "betPercentage";
+    }
+
+    export class BoostedOdds {
+        static eventName = "odds";
     }
 
     export type MaxBetPerChoices = Odds;
