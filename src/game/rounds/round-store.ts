@@ -14,6 +14,7 @@ export type Bets = {
 
 export type RoundOdds = {
     odds: GameServiceMessage.Odds;
+    boostedChoices: string[];
     fractional: boolean;
 };
 
@@ -131,6 +132,7 @@ export class RoundStore {
         return {
             odds: this.gameConfigStore.odds,
             fractional: this.mainPlayerStore.fractionalOddsFormat,
+            boostedChoices: this.gameConfigStore.boostedChoices,
         };
     }
 
