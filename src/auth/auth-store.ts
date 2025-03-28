@@ -100,4 +100,9 @@ export class AuthStore {
         this.isDisabledAccount = true;
         this.errorCode = errorCode;
     }
+
+    reset() {
+        this.isAuthenticated = false;
+        this.errorCode = "";
+    }
 }

@@ -245,6 +245,7 @@ export namespace AuthHandlers {
 
         async handle(ssoInfo: ISSOInfo) {
             try {
+                this.authStore.reset();
                 if (!this.isValidSessionStorage(ssoInfo)) {
                     return;
                 }
@@ -303,6 +304,7 @@ export namespace AuthHandlers {
             }
             if (response.isAuthenticated) {
                 this.authStore.setAuthSSOStore(response);
+                this.appStore.isSessionTimeout = false;
                 this.saveDataSSOInStorage();
                 await this.handleAuthorize(response.ss, response.username);
             } else {
