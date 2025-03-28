@@ -245,6 +245,7 @@ export namespace AuthHandlers {
 
         async handle(ssoInfo: ISSOInfo) {
             try {
+                this.authStore.reset();
                 if (!this.isValidSessionStorage(ssoInfo)) {
                     return;
                 }
