@@ -303,6 +303,7 @@ export namespace AuthHandlers {
             }
             if (response.isAuthenticated) {
                 this.authStore.setAuthSSOStore(response);
+                this.appStore.isSessionTimeout = false;
                 this.saveDataSSOInStorage();
                 await this.handleAuthorize(response.ss, response.username);
             } else {
