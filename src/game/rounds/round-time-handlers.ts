@@ -16,6 +16,10 @@ export class RoundTimeHandlers implements IMultipleHandlers {
         this.roundRunningHandlers.startRunner();
     }
 
+    handleMatch(match: GameServiceMessage.Match) {
+        this.store.teamData = match;
+    }
+
     handleStartNewRoundStatus(snr: boolean) {
         this.store.startNewRound = snr;
     }
@@ -41,6 +45,10 @@ export class RoundTimeHandlers implements IMultipleHandlers {
         {
             name: GameServiceMessage.remainingTime,
             handle: this.handleRemainingTime,
+        },
+        {
+            name: GameServiceMessage.Match.eventName,
+            handle: this.handleMatch,
         },
         {
             name: GameServiceMessage.snr,

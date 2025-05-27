@@ -39,6 +39,7 @@ export class RoundTimeStore {
         @inject(GameSetting) readonly gameSetting: GameSetting,
         public roundTime = RoundTimeInitValue,
         public roundState = ROUND_STATE.NONE,
+        public teamData = {},
         public countdownTimer = 0,
         public remaining = 0,
         public startNewRound = false,
@@ -48,6 +49,7 @@ export class RoundTimeStore {
     ) {
         this.roundState = roundState;
         this.roundTime = roundTime;
+        this.teamData = teamData;
         this.countdownTimer = countdownTimer;
         this.remaining = remaining;
         this.startNewRound = startNewRound;
@@ -58,6 +60,7 @@ export class RoundTimeStore {
         makeObservable(this, {
             roundTime: observable,
             roundState: observable,
+            teamData: observable,
             countdownTimer: observable,
             remaining: observable,
             startNewRound: observable,

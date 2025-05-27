@@ -100,6 +100,13 @@ export namespace GameServiceMessage {
     export const notPermittedToPlay = "notPermittedToPlay";
 
     export const roundId = "roundId";
+    
+    export class Match {
+        [teamName: string]: string;
+
+        static eventName = "match";
+    }
+
     export type Odds = {
         [betChoice: string]: number;
     };
