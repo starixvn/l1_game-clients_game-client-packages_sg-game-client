@@ -33,7 +33,7 @@ export class DisableGameHandlers implements IMultipleHandlers {
     }
 
     isInstantOrDirectApp() {
-        return this.authStore.system === AppTypes.Instant || this.authStore.system === AppTypes.Direct;
+        return this.authStore.system === AppTypes.Instant || this.authStore.system === AppTypes.LivePage || this.authStore.system === AppTypes.TodayPage;
     }
 
     showPopupHandle(disabledGameInfo: GameServiceMessage.DisabledGameInfo) {

@@ -13,6 +13,7 @@ import { StorageManager, localStorageKeys } from "../shared/utils/storage-manage
 import { AppStore } from "./../app/app-store";
 import { AuthStore, ISessionInfo } from "./auth-store";
 import { UserService } from "./user-service";
+import { SiteConfigs } from "../configs";
 
 const { ErrorUtils, AuthUtils } = utils;
 
@@ -39,7 +40,7 @@ export interface ISSOInfo {
 export namespace AuthHandlers {
     @injectable()
     export class SignOut implements IHandler<void> {
-        constructor(@inject(AppStore) private readonly appStore: AppStore, @inject(AuthStore) private readonly authStore: AuthStore) {}
+        constructor(@inject(AppStore) private readonly appStore: AppStore, @inject(AuthStore) private readonly authStore: AuthStore) { }
         handle() {
             this.authStore.signOut();
             this.appStore.setTimeOut();
@@ -53,7 +54,7 @@ export namespace AuthHandlers {
             @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore,
             @inject(UserService) private readonly userService: UserService,
             @inject(SignOut) private readonly signOutHandler: SignOut
-        ) {}
+        ) { }
 
         async handle({ sessionInfo }) {
             const { session, username } = sessionInfo;
@@ -88,7 +89,7 @@ export namespace AuthHandlers {
     export class TriggerRecheckIn implements IHandler<void> {
         private reCheckInId: NodeJS.Timeout;
 
-        constructor(@inject(ReCheckIn) private readonly reCheckIn: ReCheckIn, @inject(SignOut) private readonly signOutHandler: SignOut) {}
+        constructor(@inject(ReCheckIn) private readonly reCheckIn: ReCheckIn, @inject(SignOut) private readonly signOutHandler: SignOut) { }
 
         async handle() {
             this.clearInterval();
@@ -130,7 +131,7 @@ export namespace AuthHandlers {
             @inject(UserService) private readonly userService: UserService,
             @inject(SignOut) private readonly signOutHandler: SignOut,
             @inject(TriggerRecheckIn) private readonly triggerRecheckIn: TriggerRecheckIn
-        ) {}
+        ) { }
 
         async handle({ session = "", username = "" }) {
             try {
@@ -240,8 +241,9 @@ export namespace AuthHandlers {
             @inject(SignOut) private readonly signOutHandler: SignOut,
             @inject(PlayerSelectionHandlers.ClearHandlers)
             private readonly playerSelectionClearHandler: PlayerSelectionHandlers.ClearHandlers,
-            @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore
-        ) {}
+            @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore,
+            @inject(SiteConfigs) private readonly siteConfigs: SiteConfigs
+        ) { }
 
         async handle(ssoInfo: ISSOInfo) {
             try {
@@ -278,7 +280,7 @@ export namespace AuthHandlers {
                 this.playerSelectionClearHandler.handle();
                 this.appStore.setDataStore(ssoInfo);
                 const token = ssoInfo?.token;
-                const system = +ssoInfo?.appType || AppTypes.Direct;
+                const system = +ssoInfo?.appType || this.siteConfigs.appType || AppTypes.LivePage;
 
                 if (ssoInfo?.operator) {
                     StorageManager.set(localStorageKeys.operator, ssoInfo?.operator);
@@ -351,7 +353,7 @@ export namespace AuthHandlers {
             @inject(AuthStore) private readonly authStore: AuthStore,
             @inject(MainPlayerStore) private readonly mainPlayerStore: MainPlayerStore,
             @inject(UserService) private readonly userService: UserService
-        ) {}
+        ) { }
 
         async handle() {
             const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo;
@@ -369,7 +371,7 @@ export namespace AuthHandlers {
 
     @injectable()
     export class ClearRecheckInInterval implements IHandler<void> {
-        constructor(@inject(TriggerRecheckIn) private readonly triggerRecheckIn: TriggerRecheckIn) {}
+        constructor(@inject(TriggerRecheckIn) private readonly triggerRecheckIn: TriggerRecheckIn) { }
 
         handle() {
             this.triggerRecheckIn.clearInterval();
