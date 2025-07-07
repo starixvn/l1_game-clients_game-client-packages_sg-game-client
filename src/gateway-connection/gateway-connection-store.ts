@@ -36,7 +36,23 @@ export class GatewayConnectionStore {
             upgrade: false,
             forceNew: true,
         };
-        const options = { ...optionsDefault, ...customizeOptions } as Partial<ManagerOptions & SocketOptions>;
+
+        // Merge with custom options first
+        const mergedOptions = { ...optionsDefault, ...customizeOptions };
+
+        // Add socket.io specific options to prevent disconnection on tab switch
+        const options = {
+            ...mergedOptions,
+            // Prevent automatic disconnection when tab is not visible
+            autoConnect: true,
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            timeout: 20000,
+            // Keep connection alive even when tab is not visible
+            closeOnBeforeunload: false,
+        } as Partial<ManagerOptions & SocketOptions>;
 
         // DEBUG: Track connection initialization
         // TODO: Remove or replace with a proper logger in production
