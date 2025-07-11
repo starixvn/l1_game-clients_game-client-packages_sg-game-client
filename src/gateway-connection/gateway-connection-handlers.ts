@@ -12,12 +12,10 @@ export namespace GatewayConnectionHandlers {
         }
 
         reset() {
-            console.log('GatewayConnectionHandlers reset');
             this.store.reset();
         }
 
         disconnect() {
-            console.log('GatewayConnectionHandlers disconnect');
             this.store.connection?.disconnect();
         }
     }

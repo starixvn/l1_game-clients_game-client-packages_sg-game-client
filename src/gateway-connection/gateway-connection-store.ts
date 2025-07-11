@@ -54,13 +54,7 @@ export class GatewayConnectionStore {
             closeOnBeforeunload: false,
         } as Partial<ManagerOptions & SocketOptions>;
 
-        // DEBUG: Track connection initialization
-        // TODO: Remove or replace with a proper logger in production
-        // Using console.debug so it can easily be filtered out in most browsers
-        console.debug("[GatewayConnectionStore] initConnection", {
-            socketUri,
-            options,
-        });
+
 
         if (this.siteConfigs.enableMsgpackParserAllGames) {
             options.parser = MsgpackParser;
@@ -82,33 +76,21 @@ export class GatewayConnectionStore {
     }
 
     onConnected() {
-        // DEBUG
-        console.info("[GatewayConnectionStore] Connected to gateway");
-
         this.isConnected = true;
         this.isConnectFailed = false;
     }
 
     onConnectFailed(error?: Error) {
-        // DEBUG
-        console.warn("[GatewayConnectionStore] Connection failed", error);
-
         this.isConnectFailed = true;
         this.handleConnectionStatus(false, error);
     }
 
     onDisconnected(reason = "") {
-        // DEBUG
-        console.info("[GatewayConnectionStore] Disconnected", { reason });
-
         this.handleDisconnectionReason(reason);
         this.handleConnectionStatus(false);
     }
 
     handleDisconnectionReason(reason = "") {
-        // DEBUG
-        console.debug("[GatewayConnectionStore] handleDisconnectionReason", { reason });
-
         if (this.isServerDisconnect(reason)) {
             this.isDisconnect = true;
             return;
@@ -122,15 +104,6 @@ export class GatewayConnectionStore {
     handleConnectionStatus(connected: boolean, error?: Error) {
         this.isConnected = connected;
         this.signedIn = connected;
-
-        // DEBUG
-        console.debug("[GatewayConnectionStore] handleConnectionStatus", {
-            connected: this.isConnected,
-            signedIn: this.signedIn,
-            isConnectFailed: this.isConnectFailed,
-            isDisconnect: this.isDisconnect,
-            error,
-        });
 
         error && this.logError(error);
     }
@@ -148,9 +121,6 @@ export class GatewayConnectionStore {
     }
 
     reset() {
-        // DEBUG
-        console.debug("[GatewayConnectionStore] Reset connection state");
-
         this.connection = null;
         this.isConnected = null;
         this.isConnectFailed = false;
