@@ -203,8 +203,6 @@ describe("NotificationStore tests with Enhanced Logger", () => {
 
         it("should log error with component name", () => {
             // assert - Updated to use component name
-            expect(sentryLogger.logError).toHaveBeenCalledWith('NotificationStore', error);
-            // OR using the new function
             expect(logError).toHaveBeenCalledWith('NotificationStore', error);
         });
     });

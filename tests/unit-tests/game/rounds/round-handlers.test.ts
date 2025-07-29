@@ -99,10 +99,10 @@ describe("RoundHandlers test", () => {
         it("should update userBetPercentage", () => {
             // Arrange
             const roundHandler = new RoundHandlers(roundStore);
-            const data = stub<GameServiceMessage.UserBetPercentage>({
+            const data = {
                 even: 40,
                 odd: 60,
-            });
+            };
 
             // Act
             roundHandler.handleUserBetPercent(data);

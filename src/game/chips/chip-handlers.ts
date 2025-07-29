@@ -1,29 +1,36 @@
-import { inject, injectable } from "inversify";
+import { inject, injectable, LazyServiceIdentifer } from "inversify";
 import { GameServiceMessage, IMultipleHandlers } from "../../shared";
 import { ChipStore } from "./chip-store";
 
 @injectable()
 export class ChipHandlers implements IMultipleHandlers {
-    constructor(@inject(ChipStore) protected readonly store: ChipStore) {}
+    private _eventHandleList: Array<{ name: string; handle: (input: any) => any }> | null = null;
 
-    eventHandleList = [
-        {
-            name: GameServiceMessage.Chips.eventName,
-            handle: this.handleChips,
-        },
-        {
-            name: GameServiceMessage.PlayerChip.eventName,
-            handle: this.handlePlayerChip,
-        },
-        {
-            name: GameServiceMessage.OwnChip.eventName,
-            handle: this.handleOwnChip,
-        },
-        {
-            name: GameServiceMessage.ReBet.eventName,
-            handle: this.handleReBet,
-        },
-    ];
+    constructor(@inject(new LazyServiceIdentifer(() => ChipStore)) protected readonly store: ChipStore) { }
+
+    get eventHandleList() {
+        if (!this._eventHandleList) {
+            this._eventHandleList = [
+                {
+                    name: GameServiceMessage.Chips.eventName,
+                    handle: (input: any) => this.handleChips(input),
+                },
+                {
+                    name: GameServiceMessage.PlayerChip.eventName,
+                    handle: (input: any) => this.handlePlayerChip(input),
+                },
+                {
+                    name: GameServiceMessage.OwnChip.eventName,
+                    handle: (input: any) => this.handleOwnChip(input),
+                },
+                {
+                    name: GameServiceMessage.ReBet.eventName,
+                    handle: (input: any) => this.handleReBet(input),
+                },
+            ];
+        }
+        return this._eventHandleList;
+    }
 
     handleChips(chips: GameServiceMessage.Chips) {
         this.store.chips = chips;

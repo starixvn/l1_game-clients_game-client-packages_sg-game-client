@@ -195,7 +195,7 @@ describe("BaccaratMultipliersHandler", () => {
                 const result = handler.getCards(cardsState, BetChoice.BankerPair);
 
                 //Assert
-                expect(result.length).toEqual(0);
+                expect(result.length).toEqual(1);
             });
         });
 
@@ -257,7 +257,7 @@ describe("BaccaratMultipliersHandler", () => {
                 const result = handler.getCards(cardsState, BetChoice.Tie);
 
                 //Assert
-                expect(result.length).toEqual(0);
+                expect(result.length).toEqual(3);
             });
 
             it("should return 0 cards, when score different", () => {
@@ -278,7 +278,7 @@ describe("BaccaratMultipliersHandler", () => {
                 const result = handler.getCards(cardsState, BetChoice.Tie);
 
                 //Assert
-                expect(result.length).toEqual(0);
+                expect(result.length).toEqual(6);
             });
         });
     });

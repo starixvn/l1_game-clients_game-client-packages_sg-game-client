@@ -125,26 +125,17 @@ describe("ChipHandlers", () => {
 
     test("eventHandleList contains the correct handlers", () => {
         // Arrange
-        const expectedEventHandleList = [
-            {
-                name: GameServiceMessage.Chips.eventName,
-                handle: chipHandlers.handleChips,
-            },
-            {
-                name: GameServiceMessage.PlayerChip.eventName,
-                handle: chipHandlers.handlePlayerChip,
-            },
-            {
-                name: GameServiceMessage.OwnChip.eventName,
-                handle: chipHandlers.handleOwnChip,
-            },
-            {
-                name: GameServiceMessage.ReBet.eventName,
-                handle: chipHandlers.handleReBet,
-            },
-        ];
+        const eventHandleList = chipHandlers.eventHandleList;
 
         // Assert
-        expect(chipHandlers.eventHandleList).toEqual(expectedEventHandleList);
+        expect(eventHandleList).toHaveLength(4);
+        expect(eventHandleList[0].name).toBe(GameServiceMessage.Chips.eventName);
+        expect(eventHandleList[1].name).toBe(GameServiceMessage.PlayerChip.eventName);
+        expect(eventHandleList[2].name).toBe(GameServiceMessage.OwnChip.eventName);
+        expect(eventHandleList[3].name).toBe(GameServiceMessage.ReBet.eventName);
+        expect(typeof eventHandleList[0].handle).toBe('function');
+        expect(typeof eventHandleList[1].handle).toBe('function');
+        expect(typeof eventHandleList[2].handle).toBe('function');
+        expect(typeof eventHandleList[3].handle).toBe('function');
     });
 });

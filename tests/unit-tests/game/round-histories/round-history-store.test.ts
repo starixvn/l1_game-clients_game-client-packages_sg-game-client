@@ -207,6 +207,7 @@ describe("RoundHistoryStore", () => {
                 },
             ];
             roundTimeStoreMock.roundState = ROUND_STATE.START_GAME_LOOP;
+            roundHistoryStore.receivedInGame = true; // Set receivedInGame to true
 
             // Act
             const result = roundHistoryStore.isValidHistories;

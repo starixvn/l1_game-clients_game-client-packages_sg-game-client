@@ -273,31 +273,31 @@ export class RoundTimeStore {
             return ROUND_STATE.WAITING;
         }
 
+        let currentState = "";
+        if (this.isWaiting) {
+            currentState = ROUND_STATE.WAITING;
+        }
+
         if (this.isShowAnimationResult) {
-            return ROUND_STATE.SHOW_ANIMATION_RESULT;
+            currentState = ROUND_STATE.SHOW_ANIMATION_RESULT;
         }
 
         if (this.isShowResult) {
-            return ROUND_STATE.SHOW_RESULT;
+            currentState = ROUND_STATE.SHOW_RESULT;
         }
 
         if (this.isStartingRound) {
-            return ROUND_STATE.STARTING_ROUND;
+            currentState = ROUND_STATE.STARTING_ROUND;
         }
 
         if (this.isPlacingBet) {
-            return ROUND_STATE.PLACING_BET;
+            currentState = ROUND_STATE.PLACING_BET;
         }
 
         if (this.isLocking) {
-            return ROUND_STATE.LOCKING_BET;
+            currentState = ROUND_STATE.LOCKING_BET;
         }
-
-        if (this.isWaiting) {
-            return ROUND_STATE.WAITING;
-        }
-
-        return ROUND_STATE.WAITING;
+        return currentState;
     }
 
     start() {

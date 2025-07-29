@@ -105,8 +105,13 @@ describe("MultiplierHandlers", () => {
             // Arrange
             const roundTime = 12;
             multiplierHandlers.handleRocketState = jest.fn();
-            roundTimeStore.gameSetting.durations.placingBet = 10;
-            roundTimeStore.gameSetting.durations.startRound = 1;
+            // Ensure the mock returns the correct values
+            Object.defineProperty(roundTimeStore, 'placingBet', {
+                get: jest.fn().mockReturnValue(10)
+            });
+            Object.defineProperty(roundTimeStore, 'startRound', {
+                get: jest.fn().mockReturnValue(1)
+            });
 
             // Act
             multiplierHandlers.changeRocketState(roundTime);

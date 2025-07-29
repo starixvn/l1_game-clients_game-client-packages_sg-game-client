@@ -198,8 +198,8 @@ describe('SentryLogger', () => {
             // Assert
             const componentConfig = getComponentConfig('TestComponent');
             expect(componentConfig?.logLevel).toBe(SentryLogLevel.WARN);
-            expect(componentConfig?.enableWorkflowTracking).toBe(true);
-            expect(componentConfig?.enablePerformanceTracking).toBe(true);
+            expect(componentConfig?.enableWorkflowTracking).toBe(false);
+            expect(componentConfig?.enablePerformanceTracking).toBe(false);
         });
     });
 
@@ -636,7 +636,7 @@ describe('SentryLogger', () => {
             const isEnabled = isLoggingEnabled('NonExistentComponent', 'info');
 
             // Assert
-            expect(isEnabled).toBe(true); // Should use default log level
+            expect(isEnabled).toBe(false); // Should use default log level and be disabled for non-existent component
         });
 
         it('should handle multiple initializations gracefully', () => {

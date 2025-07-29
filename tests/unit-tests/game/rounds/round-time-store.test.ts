@@ -213,6 +213,7 @@ describe("RoundTimeStore Unit Tests", () => {
         it("should return true if roundTime is equal to placingBet AND wholeRound is not equal to 0", () => {
             // Arrange
             roundTimeStore.roundTime = 30;
+            roundTimeStore.gameSetting.durations.placingBet = 30; // Ensure placingBet is set to 30
             roundTimeStore.gameSetting.durations.wholeRound = 39; // Ensure wholeRound is not 0
 
             // Assert
@@ -425,7 +426,7 @@ describe("RoundTimeStore Unit Tests", () => {
         });
 
         describe("check round state is SHOW_ANIMATION_RESULT", () => {
-            test("set round state to SHOW_ANIMATION_RESULT if isShowAnimationResult is true (roundTime=0)`", () => {
+            test("set round state to SHOW_ANIMATION_RESULT if isShowAnimationResult is true (roundTime=0)", () => {
                 // Arrange
                 roundTimeStore.roundTime = 0;
 
@@ -440,6 +441,8 @@ describe("RoundTimeStore Unit Tests", () => {
                 test(`set round state to SHOW_ANIMATION_RESULT if isShowAnimationResult is true (roundTime=${roundTime})`, () => {
                     // Arrange
                     roundTimeStore.roundTime = roundTime;
+                    // Ensure game settings are properly set for this test
+                    roundTimeStore.gameSetting.durations = { ...setting };
 
                     // Act
                     roundTimeStore.calculateRoundStatus();
@@ -507,6 +510,8 @@ describe("RoundTimeStore Unit Tests", () => {
                 test(`set round state to PLACING_BET if isPlacingBet is true (roundTime=${roundTime})`, () => {
                     // Arrange
                     roundTimeStore.roundTime = roundTime;
+                    // Ensure game settings are properly set
+                    roundTimeStore.gameSetting.durations = setting;
 
                     // Act
                     roundTimeStore.calculateRoundStatus();

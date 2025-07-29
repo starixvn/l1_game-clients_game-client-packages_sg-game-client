@@ -182,7 +182,7 @@ describe("NoticeErrorsHandlers", () => {
         let backToOperatorLobbyHandler: AppHandlers.BackToOperatorLobby;
         let authStore: AuthStore;
         beforeAll(() => {
-            gameSetting = stub<GameSetting>();
+            gameSetting = stub<GameSetting>({ name: "game_name" });
             noticeStore = stub<NoticeStore>();
             connectionStore = stub<ConnectionStore>();
             backToOperatorLobbyHandler = stub<AppHandlers.BackToOperatorLobby>();
@@ -213,7 +213,7 @@ describe("NoticeErrorsHandlers", () => {
             expect((noticeStore.addNotice as jest.Mock).mock.calls[0][0].title).toBe("Notice");
             expect((noticeStore.addNotice as jest.Mock).mock.calls[0][0].type).toBe(NoticeType.Error);
             expect(typeof (noticeStore.addNotice as jest.Mock).mock.calls[0][0].onClose).toBe("function");
-            expect(Translator.translate).toHaveBeenCalledWith(`game_name`);
+            expect(Translator.translate).toHaveBeenCalledWith(`game_name.game_name`);
             expect(Translator.getMessageFollowSystem).toHaveBeenCalledWith(AppTypes.App, "message_lost_game_connection", {
                 gameName: "Game name",
             });

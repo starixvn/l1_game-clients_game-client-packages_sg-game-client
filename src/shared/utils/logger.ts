@@ -109,8 +109,6 @@ class SentryLogger {
     static getInstance(): SentryLogger {
         if (!SentryLogger.instance) {
             SentryLogger.instance = new SentryLogger();
-            // Initialize with default config
-            SentryLogger.instance.initialize();
         }
         return SentryLogger.instance;
     }
@@ -215,18 +213,31 @@ class SentryLogger {
     }
 
     configureComponent(componentName: string, config: Partial<ComponentConfig>): void {
-        const existingConfig = this.componentConfigs.get(componentName) || {
+        const existingConfig = this.componentConfigs.get(componentName);
+        const baseConfig = {
             name: componentName,
-            logLevel: this.globalConfig.defaultLogLevel,
-            enableWorkflowTracking: this.globalConfig.enableWorkflowTracking,
-            enablePerformanceTracking: this.globalConfig.enablePerformanceTracking
+            logLevel: this.globalConfig?.defaultLogLevel || SentryLogLevel.INFO,
+            enableWorkflowTracking: this.globalConfig?.enableWorkflowTracking || false,
+            enablePerformanceTracking: this.globalConfig?.enablePerformanceTracking || false
         };
 
-        this.componentConfigs.set(componentName, { ...existingConfig, ...config });
+        const mergedConfig = existingConfig ? { ...existingConfig, ...config } : { ...baseConfig, ...config };
+        this.componentConfigs.set(componentName, mergedConfig);
     }
 
     getComponentConfig(componentName: string): ComponentConfig | undefined {
-        return this.componentConfigs.get(componentName);
+        const config = this.componentConfigs.get(componentName);
+        if (config) {
+            return config;
+        }
+
+        // Return default configuration if component doesn't exist
+        return {
+            name: componentName,
+            logLevel: this.globalConfig?.defaultLogLevel || SentryLogLevel.INFO,
+            enableWorkflowTracking: this.globalConfig?.enableWorkflowTracking || false,
+            enablePerformanceTracking: this.globalConfig?.enablePerformanceTracking || false
+        };
     }
 
     isLoggingEnabled(componentName: string, level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'): boolean {

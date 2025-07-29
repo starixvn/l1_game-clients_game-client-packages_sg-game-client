@@ -22,6 +22,7 @@ jest.mock("../../../../src/shared/utils", () => ({
     UrlUtils: { buildGameGuideUrl: jest.fn().mockReturnValue("guide.test") },
     Translator: {
         gameTranslate: jest.fn().mockReturnValue("Test"),
+        translate: jest.fn().mockReturnValue("Test"),
     },
 }));
 
