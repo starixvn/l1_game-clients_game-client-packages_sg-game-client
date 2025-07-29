@@ -35,7 +35,10 @@ describe("BetHandler", () => {
         orientationStore = new OrientationStore();
         retryHandler = stub<ConnectionHandlers.RetryGameHandler>();
 
-        gameSetting = stub<GameSetting>();
+        gameSetting = stub<GameSetting>({
+            isSocketGateway: false,
+            gameName: "testGame"
+        });
         roundTimeStore = stub<RoundTimeStore>();
     });
 
@@ -203,6 +206,34 @@ describe("BetHandler", () => {
                 amount: betStore.amount,
                 freeBet: betStore.freebetEnabled,
                 clientSentTime: expect.any(Date),
+            });
+            expect(retryHandler.handle).toBeCalled();
+        });
+
+        it("should send bet data in gateway format when isSocketGateway is true", () => {
+            // Arrange
+            mainPlayerStore.scoin = 100;
+            mainPlayerStore.balance = 100;
+            betStore.amount = 50;
+            betInfo = { betChoice, amount: 50 };
+            Object.defineProperty(gameSetting, 'isSocketGateway', { value: true, writable: true });
+            Object.defineProperty(gameSetting, 'gameName', { value: "testGame", writable: true });
+
+            // Act
+            betHandler.handle(betInfo);
+
+            // Assert
+            expect(noticeStore.addWarning).not.toBeCalled();
+            expect(connectionStore.send).toBeCalledWith(GameClientEmitMessage.Bet.eventName, {
+                gameName: "testGame",
+                betData: {
+                    m: orientationStore.m,
+                    username: mainPlayerStore.name,
+                    betChoice,
+                    amount: betStore.amount,
+                    freeBet: betStore.freebetEnabled,
+                    clientSentTime: expect.any(Date),
+                }
             });
             expect(retryHandler.handle).toBeCalled();
         });

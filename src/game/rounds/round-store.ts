@@ -177,7 +177,11 @@ export class RoundStore {
     }
 
     setTotalBets(totalBets: GameServiceMessage.TotalBets) {
-        this.totalBets = Object.keys(totalBets).reduce((total, betChoice) => {
+        this.totalBets = totalBets;
+    }
+
+    get convertedTotalBets() {
+        return Object.keys(this.totalBets).reduce((total, betChoice) => {
             total[betChoice] = this.totalBets[betChoice] / this.mainPlayerStore.rate;
             return total;
         }, {});

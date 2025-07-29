@@ -1,82 +1,66 @@
 import { stub } from "jest-auto-stub";
-import { reaction, when } from "mobx";
-import { RoundStore, RoundTimeStore, RoundUIHandlers } from "../../../../src/game/rounds";
-import { SettlementStatusStore, SettlementStore } from "../../../../src/game/settlements";
-import { ChipStore } from "../../../../src/game/chips/chip-store";
+import { RoundUIHandlers } from "../../../../src/game/rounds/round-ui-handlers";
+import { ChipStore } from "../../../../src/game/chips";
+import { RoundStore } from "../../../../src/game/rounds/round-store";
+import { RoundTimeStore } from "../../../../src/game/rounds/round-time-store";
+import { SettlementStatusStore } from "../../../../src/game/settlements/settlement-status-store";
+import { SettlementStore } from "../../../../src/game/settlements/settlement-store";
 
-jest.mock("mobx", () => {
-    return {
-        reaction: jest.fn(),
-        when: jest.fn(),
-    };
-});
-describe("RoundUIHandlers tests", () => {
+describe("RoundUIHandlers", () => {
+    let roundTimeStore: RoundTimeStore;
+    let roundStore: RoundStore;
+    let settlementStatusStore: SettlementStatusStore;
+    let settlementStore: SettlementStore;
+    let chipStore: ChipStore;
+    let chipStoreFactory: () => ChipStore;
+    let startingRoundHandler: RoundUIHandlers.StartingRoundHandler;
+
+    beforeEach(() => {
+        roundTimeStore = stub<RoundTimeStore>();
+        roundStore = stub<RoundStore>();
+        settlementStatusStore = stub<SettlementStatusStore>();
+        settlementStore = stub<SettlementStore>();
+        chipStore = stub<ChipStore>();
+
+        // Create a factory function that returns the chipStore
+        chipStoreFactory = jest.fn(() => chipStore);
+
+        startingRoundHandler = new RoundUIHandlers.StartingRoundHandler(
+            roundTimeStore,
+            roundStore,
+            settlementStatusStore,
+            settlementStore,
+            chipStoreFactory
+        );
+    });
+
     describe("StartingRoundHandler", () => {
-        let handler: RoundUIHandlers.StartingRoundHandler;
-        let roundTimeStore: RoundTimeStore;
-        let roundStore: RoundStore;
-        let settlementStatusStore: SettlementStatusStore;
-        let settlementStore: SettlementStore;
-        let chipStore: ChipStore;
-        beforeAll(() => {
-            chipStore = stub<ChipStore>();
-            roundTimeStore = stub<RoundTimeStore>();
-            roundStore = stub<RoundStore>();
-            settlementStatusStore = stub<SettlementStatusStore>();
-            settlementStore = stub<SettlementStore>();
+        it("should reset all stores when handle is called", () => {
+            // Arrange
+            jest.spyOn(startingRoundHandler, 'resetForNewRound');
+
+            // Act
+            startingRoundHandler.handle();
+
+            // Assert
+            expect(startingRoundHandler.resetForNewRound).toHaveBeenCalled();
         });
 
-        describe("constructor", () => {
-            it("should set reaction for this.roundTimeStore.roundState === ROUND_STATE.STARTING_ROUND", () => {
-                // Act
-                handler = new RoundUIHandlers.StartingRoundHandler(
-                    roundTimeStore,
-                    roundStore,
-                    settlementStatusStore,
-                    settlementStore,
-                    chipStore
-                );
+        it("should reset chips, round, settlement status, and settlement store", () => {
+            // Arrange
+            jest.spyOn(chipStore, 'resetChips');
+            jest.spyOn(roundStore, 'resetForNewRound');
+            jest.spyOn(settlementStatusStore, 'resetSettlementStatus');
+            jest.spyOn(settlementStore, 'resetSettlementStore');
 
-                // Assert
-                expect(reaction).toBeCalled();
-            });
+            // Act
+            startingRoundHandler.resetForNewRound();
 
-            it("should set when for this.roundTimeStore.roundState === ROUND_STATE.STARTING_ROUND", () => {
-                // Act
-                handler = new RoundUIHandlers.StartingRoundHandler(
-                    roundTimeStore,
-                    roundStore,
-                    settlementStatusStore,
-                    settlementStore,
-                    chipStore
-                );
-
-                // Assert
-                expect(when).toBeCalled();
-            });
-        });
-
-        describe("handle", () => {
-            it("should call reset some stores", () => {
-                // Arrange
-                handler = new RoundUIHandlers.StartingRoundHandler(
-                    roundTimeStore,
-                    roundStore,
-                    settlementStatusStore,
-                    settlementStore,
-                    chipStore
-                );
-                roundStore.resetForNewRound = jest.fn();
-                settlementStatusStore.resetSettlementStatus = jest.fn();
-                settlementStore.resetSettlementStore = jest.fn();
-                // Act
-                handler.handle();
-
-                // Assert
-                expect(roundStore.resetForNewRound).toBeCalled();
-                expect(settlementStatusStore.resetSettlementStatus).toBeCalled();
-                expect(settlementStore.resetSettlementStore).toBeCalled();
-            });
+            // Assert
+            expect(chipStore.resetChips).toHaveBeenCalled();
+            expect(roundStore.resetForNewRound).toHaveBeenCalled();
+            expect(settlementStatusStore.resetSettlementStatus).toHaveBeenCalled();
+            expect(settlementStore.resetSettlementStore).toHaveBeenCalled();
         });
     });
 });

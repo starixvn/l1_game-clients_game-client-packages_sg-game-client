@@ -1,4 +1,4 @@
-import { inject, injectable } from "inversify";
+import { inject, injectable, LazyServiceIdentifer } from "inversify";
 import { reaction, when } from "mobx";
 import { IHandler } from "../../shared";
 import { ChipStore } from "../chips";
@@ -9,12 +9,14 @@ import { RoundTimeStore } from "./round-time-store";
 export namespace RoundUIHandlers {
     @injectable()
     export class StartingRoundHandler implements IHandler<void> {
+        private chipStore: ChipStore;
+
         constructor(
             @inject(RoundTimeStore) private readonly roundTimeStore: RoundTimeStore,
             @inject(RoundStore) private readonly roundStore: RoundStore,
             @inject(SettlementStatusStore) private readonly settlementStatusStore: SettlementStatusStore,
             @inject(SettlementStore) private readonly settlementStore: SettlementStore,
-            @inject(ChipStore) private readonly chipStore: ChipStore
+            @inject(new LazyServiceIdentifer(() => ChipStore)) private readonly chipStoreFactory: () => ChipStore
         ) {
             reaction(
                 () => this.roundTimeStore.isStartingRound,
@@ -34,6 +36,7 @@ export namespace RoundUIHandlers {
         }
 
         resetForNewRound() {
+            this.chipStore = this.chipStoreFactory();
             this.chipStore.resetChips();
             this.roundStore.resetForNewRound();
             this.settlementStatusStore.resetSettlementStatus();

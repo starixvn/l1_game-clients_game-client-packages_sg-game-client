@@ -91,7 +91,7 @@ describe("RoundStore", () => {
         roundStore.totalBets = { even: 10, red4: 20, red3: 5 };
 
         // act
-        const actual = roundStore.totalBets;
+        const actual = roundStore.convertedTotalBets;
 
         // assert
         expect(actual).toEqual({ even: 20, red4: 40, red3: 10 });

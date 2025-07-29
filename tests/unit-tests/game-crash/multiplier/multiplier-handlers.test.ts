@@ -12,7 +12,14 @@ describe("MultiplierHandlers", () => {
 
     beforeAll(() => {
         multiplierStore = stub<MultiplierStore>();
-        roundTimeStore = stub<RoundTimeStore>();
+        roundTimeStore = stub<RoundTimeStore>({
+            gameSetting: {
+                durations: {
+                    placingBet: 10,
+                    startRound: 1
+                }
+            }
+        });
     });
 
     beforeEach(() => {

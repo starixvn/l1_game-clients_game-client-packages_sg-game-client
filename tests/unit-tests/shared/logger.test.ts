@@ -22,7 +22,8 @@ import {
     getConfig,
     getActiveWorkflows,
     cleanup,
-    close
+    close,
+    resetLogger
 } from '../../../src/shared/utils/logger';
 
 // Mock global Sentry
@@ -79,8 +80,8 @@ describe('SentryLogger', () => {
         // Reset all mocks
         jest.clearAllMocks();
 
-        // Reset global state
-        cleanup();
+        // Reset logger instance
+        resetLogger();
 
         // Reset console
         Object.defineProperty(global, 'console', {

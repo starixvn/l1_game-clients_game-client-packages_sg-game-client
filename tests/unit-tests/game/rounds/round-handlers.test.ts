@@ -67,15 +67,18 @@ describe("RoundHandlers test", () => {
         it("should call handleTotalBets in RoundHandlers", () => {
             // Arrange
             const roundHandler = new RoundHandlers(roundStore);
-            const expectOwnBets = {
+            const expectTotalBets = {
                 even: 2,
             };
 
+            // Mock the setTotalBets method
+            roundStore.setTotalBets = jest.fn();
+
             // Act
-            roundHandler.handleTotalBets(expectOwnBets);
+            roundHandler.handleTotalBets(expectTotalBets);
 
             // Assert
-            expect(roundStore.totalBets).toEqual({ even: 2 });
+            expect(roundStore.setTotalBets).toHaveBeenCalledWith(expectTotalBets);
         });
     });
     describe("handleResultHash", () => {
@@ -105,9 +108,7 @@ describe("RoundHandlers test", () => {
             roundHandler.handleUserBetPercent(data);
 
             // Assert
-            ["even", "odd"].forEach((key) => {
-                expect(roundStore.userBetPercentage[key]).toEqual(data[key]);
-            });
+            expect(roundStore.userBetPercentage).toEqual(data);
         });
     });
 
@@ -136,6 +137,14 @@ describe("RoundHandlers test", () => {
                 {
                     name: GameServiceMessage.UserBetPercentage.eventName,
                     handle: roundHandler.handleUserBetPercent,
+                },
+                {
+                    name: GameServiceMessage.BetPercentage.eventName,
+                    handle: roundHandler.handleBetPercent,
+                },
+                {
+                    name: GameServiceMessage.BoostedOdds.eventName,
+                    handle: roundHandler.handleBoostedOdds,
                 },
             ];
 

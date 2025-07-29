@@ -47,7 +47,7 @@ describe("Connection Handlers tests", () => {
             const connectionStore = stub<ConnectionStore>();
             const roundRunning = stub<RoundRunningHandlers>();
             const gameConfigStore = stub<GameConfigStore>({ initialized: false });
-            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore, gameSetting);
+            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore);
 
             // act
             handler.handle();
@@ -61,7 +61,7 @@ describe("Connection Handlers tests", () => {
             const connectionStore = stub<ConnectionStore>();
             const roundRunning = stub<RoundRunningHandlers>();
             const gameConfigStore = stub<GameConfigStore>({ initialized: true });
-            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore, gameSetting);
+            const handler = new ConnectionHandlers.InGameHandler(connectionStore, roundRunning, gameConfigStore);
 
             // act
             handler.handle();

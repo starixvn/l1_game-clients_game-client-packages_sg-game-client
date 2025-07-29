@@ -113,6 +113,10 @@ describe("RoundTimeHandlers", () => {
                 handle: roundTimeHandler.handleRemainingTime,
             },
             {
+                name: GameServiceMessage.Match.eventName,
+                handle: roundTimeHandler.handleMatch,
+            },
+            {
                 name: GameServiceMessage.snr,
                 handle: roundTimeHandler.handleStartNewRoundStatus,
             },

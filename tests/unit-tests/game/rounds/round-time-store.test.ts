@@ -213,6 +213,7 @@ describe("RoundTimeStore Unit Tests", () => {
         it("should return true if roundTime is equal to placingBet AND wholeRound is not equal to 0", () => {
             // Arrange
             roundTimeStore.roundTime = 30;
+            roundTimeStore.gameSetting.durations.wholeRound = 39; // Ensure wholeRound is not 0
 
             // Assert
             expect(roundTimeStore.isStartPlacingBet).toBeTruthy();

@@ -203,6 +203,9 @@ describe("DisableGameHandlers tests", () => {
                 disabledGameStore.disabled = false;
                 roundTimeStore.roundTime = 39;
 
+                // Reset mock call counts
+                jest.clearAllMocks();
+
                 // act
                 handler.inGameHandle(fakeDisabledGameInfo);
 

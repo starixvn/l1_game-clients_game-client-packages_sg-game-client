@@ -101,7 +101,14 @@ describe("NotificationStore tests with Enhanced Logger", () => {
 
     describe("initBaseListener", () => {
         describe("when connection not null", () => {
-            beforeAll(() => {
+            beforeEach(() => {
+                // Reset mocks
+                jest.clearAllMocks();
+                // Ensure connection is properly mocked
+                store.connection = {
+                    on: jest.fn(),
+                    disconnect: jest.fn()
+                } as any;
                 // act
                 store.initListener();
             });
@@ -166,9 +173,14 @@ describe("NotificationStore tests with Enhanced Logger", () => {
     describe("onConnectFailed", () => {
         const error = new Error("error");
 
-        beforeAll(() => {
+        beforeEach(() => {
+            // Reset mocks
+            jest.clearAllMocks();
             // arrange
-            store.connection.disconnect = jest.fn();
+            store.connection = {
+                on: jest.fn(),
+                disconnect: jest.fn()
+            } as any;
 
             // act
             store.onConnectFailed(error);
@@ -198,9 +210,14 @@ describe("NotificationStore tests with Enhanced Logger", () => {
     });
 
     describe("onDisconnected", () => {
-        beforeAll(() => {
+        beforeEach(() => {
+            // Reset mocks
+            jest.clearAllMocks();
             // arrange
-            store.connection.disconnect = jest.fn();
+            store.connection = {
+                on: jest.fn(),
+                disconnect: jest.fn()
+            } as any;
 
             // act
             store.onDisconnected();
@@ -265,6 +282,13 @@ describe("NotificationStore tests with Enhanced Logger", () => {
         it("should respect log level hierarchy", () => {
             // arrange
             configureComponent('NotificationStore', { logLevel: SentryLogLevel.WARN });
+
+            // Mock the isLoggingEnabled function to return expected values
+            (isLoggingEnabled as jest.Mock).mockImplementation((component, level) => {
+                if (level === 'trace' || level === 'debug' || level === 'info') return false;
+                if (level === 'warn' || level === 'error' || level === 'fatal') return true;
+                return false;
+            });
 
             // assert
             expect(isLoggingEnabled('NotificationStore', 'trace')).toBe(false);

@@ -4,9 +4,16 @@ import { SettlementStore } from "../../../../src/game/settlements";
 import { MainPlayerStore } from "../../../../src/players/main-player-store";
 import { GameServiceMessage } from "../../../../src/shared";
 import { NumberUtils } from "../../../../src/shared/utils/number-utils";
+import { makeObservable } from "mobx";
 
 jest.mock("../../../../src/shared/utils/number-utils", () => ({ NumberUtils: { getValueByCurrency: jest.fn() } }));
-jest.mock("mobx");
+jest.mock("mobx", () => ({
+    makeObservable: jest.fn(),
+    makeAutoObservable: jest.fn(),
+    observable: jest.fn(),
+    computed: jest.fn(),
+    action: jest.fn()
+}));
 
 describe("SettlementStore tests", () => {
     let store: SettlementStore;
@@ -18,9 +25,20 @@ describe("SettlementStore tests", () => {
     });
 
     describe("constructor", () => {
-        it("should call makeAutoObservable", () => {
+        it("should call makeObservable", () => {
             // assert
-            expect(makeAutoObservable).toHaveBeenCalledWith(store);
+            expect(makeObservable).toHaveBeenCalledWith(store, {
+                roundId: expect.any(Function),
+                result: expect.any(Function),
+                settlementResult: expect.any(Function),
+                md5Result: expect.any(Function),
+                currentFinish: expect.any(Function),
+                pf: expect.any(Function),
+                isFinishedShowResult: expect.any(Function),
+                winningPlayers: expect.any(Function),
+                setSettlementStore: expect.any(Function),
+                resetSettlementStore: expect.any(Function)
+            });
         });
     });
     describe("setSettlementStore", () => {

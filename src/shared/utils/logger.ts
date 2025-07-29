@@ -71,7 +71,8 @@ interface SentryInitConfig {
 }
 
 class SentryLogger {
-    private static instance: SentryLogger;
+    private static instance: SentryLogger | null = null;
+
     private globalConfig: GlobalSentryConfig;
     private activeWorkflows: Map<string, { config: WorkflowConfig; startTime: number; metadata: Record<string, any> }>;
     private componentConfigs: Map<string, ComponentConfig>;
@@ -110,6 +111,14 @@ class SentryLogger {
             SentryLogger.instance = new SentryLogger();
         }
         return SentryLogger.instance;
+    }
+
+    // Reset instance for testing - completely new instance
+    static resetInstance(): void {
+        if (SentryLogger.instance) {
+            SentryLogger.instance.cleanup();
+        }
+        SentryLogger.instance = new SentryLogger();
     }
 
     // Initialize the SentryLogger with global configuration
@@ -186,57 +195,48 @@ class SentryLogger {
                 const sentryScript = document?.createElement("script");
                 if (sentryScript) {
                     sentryScript.setAttribute("id", "sentry-logger");
-                    sentryScript.setAttribute("src", "https://browser.sentry-cdn.com/7.0.0/bundle.min.js");
-                    sentryScript.setAttribute("integrity", "sha384-7QvYdSWJ9VGhc7ZbzBEjSAHojwxpAgPyMvU3zHnHlN4u7hhTf/ot2W09f6JxL5Drg");
-                    sentryScript.setAttribute("crossorigin", "anonymous");
+                    sentryScript.src = "https://browser.sentry-cdn.com/7.0.0/bundle.min.js";
+                    sentryScript.integrity = "sha384-...";
+                    sentryScript.crossOrigin = "anonymous";
                     sentryScript.onload = () => {
                         this.loadScript();
                     };
+                    document.head.appendChild(sentryScript);
                 }
-                document?.head.appendChild(sentryScript);
             }
-        } catch (err) {
-            console.log(err);
+        } catch (error) {
+            console.error('Failed to start Sentry:', error);
         }
     }
 
-    // Global enable/disable
     setGlobalEnabled(enabled: boolean): void {
         this.globalConfig.enabled = enabled;
-        console.log(`SentryLogger global logging ${enabled ? 'enabled' : 'disabled'}`);
     }
 
-    // Set default log level for all components
     setDefaultLogLevel(level: SentryLogLevel): void {
         this.globalConfig.defaultLogLevel = level;
-        console.log(`SentryLogger default log level set to: ${level}`);
     }
 
-    // Component-specific configuration
     configureComponent(componentName: string, config: Partial<ComponentConfig>): void {
-        const defaultConfig: ComponentConfig = {
+        const existingConfig = this.componentConfigs.get(componentName) || {
             name: componentName,
             logLevel: this.globalConfig.defaultLogLevel,
             enableWorkflowTracking: this.globalConfig.enableWorkflowTracking,
             enablePerformanceTracking: this.globalConfig.enablePerformanceTracking
         };
 
-        const finalConfig = { ...defaultConfig, ...config };
-        this.componentConfigs.set(componentName, finalConfig);
-        console.log(`Component '${componentName}' configured:`, finalConfig);
+        this.componentConfigs.set(componentName, { ...existingConfig, ...config });
     }
 
-    // Get component configuration
     getComponentConfig(componentName: string): ComponentConfig | undefined {
         return this.componentConfigs.get(componentName);
     }
 
-    // Check if logging is enabled for a component and level
     isLoggingEnabled(componentName: string, level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'): boolean {
-        if (!this.globalConfig.enabled) return false;
+        if (!this.globalConfig?.enabled) return false;
 
         const componentConfig = this.getComponentConfig(componentName);
-        const logLevel = componentConfig?.logLevel || this.globalConfig.defaultLogLevel;
+        const logLevel = componentConfig?.logLevel || this.globalConfig?.defaultLogLevel || SentryLogLevel.INFO;
 
         // Define level hierarchy (higher number = more important)
         const levelHierarchy = {
@@ -308,19 +308,19 @@ class SentryLogger {
 
     // Workflow tracking methods
     startWorkflow(workflowId: string, workflowName: string, componentName: string, metadata?: Record<string, any>): void {
-        if (!this.globalConfig.enableWorkflowTracking) return;
+        if (!this.globalConfig?.enableWorkflowTracking) return;
 
         const workflowConfig: WorkflowConfig = {
             id: workflowId,
             name: workflowName,
             component: componentName,
-            logLevel: this.getComponentConfig(componentName)?.logLevel || this.globalConfig.defaultLogLevel,
-            enablePerformanceTracking: this.globalConfig.enablePerformanceTracking,
+            logLevel: this.getComponentConfig(componentName)?.logLevel || this.globalConfig?.defaultLogLevel || SentryLogLevel.INFO,
+            enablePerformanceTracking: this.globalConfig?.enablePerformanceTracking || false,
             metadata
         };
 
-        this.globalConfig.workflowConfigs.set(workflowId, workflowConfig);
-        this.activeWorkflows.set(workflowId, {
+        this.globalConfig?.workflowConfigs?.set(workflowId, workflowConfig);
+        this.activeWorkflows?.set(workflowId, {
             config: workflowConfig,
             startTime: performance.now(),
             metadata: metadata || {}
@@ -335,73 +335,77 @@ class SentryLogger {
     }
 
     updateWorkflow(workflowId: string, state: WorkflowState, metadata?: Record<string, any>): void {
-        const workflow = this.activeWorkflows.get(workflowId);
-        if (!workflow) return;
-
-        const { config } = workflow;
-        const componentName = config.component;
-
-        // Update metadata
-        if (metadata) {
-            workflow.metadata = { ...workflow.metadata, ...metadata };
+        const workflow = this.activeWorkflows?.get(workflowId);
+        if (!workflow) {
+            console.warn(`Workflow ${workflowId} not found for update`);
+            return;
         }
 
-        // Log workflow update
-        this.logInfo(componentName, `Workflow updated: ${config.name}`, {
+        const { config } = workflow;
+        const updatedMetadata = { ...workflow.metadata, ...metadata };
+
+        this.activeWorkflows?.set(workflowId, {
+            ...workflow,
+            metadata: updatedMetadata
+        });
+
+        this.logInfo(config.component, `Workflow updated: ${config.name}`, {
             workflowId,
             workflowName: config.name,
             state,
-            metadata: workflow.metadata
+            metadata: updatedMetadata
         });
     }
 
     completeWorkflow(workflowId: string, success: boolean = true, metadata?: Record<string, any>): void {
-        const workflow = this.activeWorkflows.get(workflowId);
-        if (!workflow) return;
+        const workflow = this.activeWorkflows?.get(workflowId);
+        if (!workflow) {
+            console.warn(`Workflow ${workflowId} not found for completion`);
+            return;
+        }
 
-        const { config, startTime } = workflow;
-        const componentName = config.component;
-        const endTime = performance.now();
-        const duration = endTime - startTime;
+        const { config } = workflow;
+        const finalMetadata = { ...workflow.metadata, ...metadata };
+        const duration = performance.now() - workflow.startTime;
+
+        this.activeWorkflows?.delete(workflowId);
+        this.globalConfig?.workflowConfigs?.delete(workflowId);
 
         const state = success ? WorkflowState.COMPLETED : WorkflowState.FAILED;
-
-        // Log workflow completion
-        const logMethod = success ? 'logInfo' : 'logError';
-        const message = success ? `Workflow completed: ${config.name}` : `Workflow failed: ${config.name}`;
-
-        this[logMethod](componentName, message, {
+        this.logInfo(config.component, `Workflow completed: ${config.name}`, {
             workflowId,
             workflowName: config.name,
             state,
-            duration: `${duration.toFixed(2)}ms`,
-            metadata: { ...workflow.metadata, ...metadata }
+            duration,
+            success,
+            metadata: finalMetadata
         });
-
-        // Clean up
-        this.activeWorkflows.delete(workflowId);
-        this.globalConfig.workflowConfigs.delete(workflowId);
     }
 
-    // Performance tracking
     trackPerformance(componentName: string, operationName: string, operation: () => Promise<any> | any): Promise<any> {
-        if (!this.globalConfig.enablePerformanceTracking) {
+        if (!this.globalConfig?.enablePerformanceTracking) {
             return Promise.resolve(operation());
         }
 
         const startTime = performance.now();
-        const workflowId = `perf_${componentName}_${operationName}_${Date.now()}`;
-
-        this.startWorkflow(workflowId, `Performance: ${operationName}`, componentName);
-
         const executeOperation = async () => {
             try {
                 const result = await operation();
-                this.completeWorkflow(workflowId, true, { result: 'success' });
+                const duration = performance.now() - startTime;
+                this.logInfo(componentName, `Performance tracked: ${operationName}`, {
+                    operationName,
+                    duration,
+                    success: true
+                });
                 return result;
             } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                this.completeWorkflow(workflowId, false, { error: errorMessage });
+                const duration = performance.now() - startTime;
+                this.logError(componentName, `Performance tracked: ${operationName} failed`, {
+                    operationName,
+                    duration,
+                    success: false,
+                    error
+                });
                 throw error;
             }
         };
@@ -409,36 +413,20 @@ class SentryLogger {
         return executeOperation();
     }
 
-    // Private helper methods
     private captureMessage(componentName: string, message: string, level: string, context?: Record<string, any>): void {
-        if (this.isEnabled()) {
-            this.loadScript();
-            const fullMessage = `[${this.identifier}] [${componentName}] ${message}`;
+        if (!this.isEnabled() || !globalThis.Sentry) return;
 
-            if (context) {
-                globalThis.Sentry?.setExtra('context', context);
-            }
-
-            globalThis.Sentry?.setTag('component', componentName);
-            globalThis.Sentry?.setTag('logLevel', level);
-            globalThis.Sentry?.captureMessage(fullMessage, level as any);
-        }
+        globalThis.Sentry.setExtra('component', componentName);
+        globalThis.Sentry.setExtra('context', context);
+        globalThis.Sentry.captureMessage(message, level);
     }
 
     private captureError(componentName: string, error: Error | string, context?: Record<string, any>, level: string = 'error'): void {
-        if (this.isEnabled()) {
-            this.loadScript();
-            const errorMessage = typeof error === 'string' ? error : error.message;
-            const fullMessage = `[${this.identifier}] [${componentName}] ${errorMessage}`;
+        if (!this.isEnabled() || !globalThis.Sentry) return;
 
-            if (context) {
-                globalThis.Sentry?.setExtra('context', context);
-            }
-
-            globalThis.Sentry?.setTag('component', componentName);
-            globalThis.Sentry?.setTag('logLevel', level);
-            globalThis.Sentry?.captureMessage(fullMessage, level as any);
-        }
+        globalThis.Sentry.setExtra('component', componentName);
+        globalThis.Sentry.setExtra('context', context);
+        globalThis.Sentry.captureException(error);
     }
 
     private overrideConsoleMethods(): void {
@@ -490,20 +478,39 @@ class SentryLogger {
 
     // Get current configuration
     getConfig(): GlobalSentryConfig {
+        if (!this.globalConfig) {
+            return {
+                enabled: true,
+                defaultLogLevel: SentryLogLevel.INFO,
+                enableWorkflowTracking: true,
+                enablePerformanceTracking: true,
+                enableConsoleOverride: true,
+                componentConfigs: new Map(),
+                workflowConfigs: new Map()
+            };
+        }
         return { ...this.globalConfig };
     }
 
     // Get active workflows
     getActiveWorkflows(): Map<string, { config: WorkflowConfig; startTime: number; metadata: Record<string, any> }> {
-        return new Map(this.activeWorkflows);
+        return new Map(this.activeWorkflows || []);
     }
 
     // Cleanup
     cleanup(): void {
-        this.activeWorkflows.clear();
-        this.componentConfigs.clear();
-        this.globalConfig.componentConfigs.clear();
-        this.globalConfig.workflowConfigs.clear();
+        if (this.activeWorkflows) {
+            this.activeWorkflows.clear();
+        }
+        if (this.componentConfigs) {
+            this.componentConfigs.clear();
+        }
+        if (this.globalConfig && this.globalConfig.componentConfigs) {
+            this.globalConfig.componentConfigs.clear();
+        }
+        if (this.globalConfig && this.globalConfig.workflowConfigs) {
+            this.globalConfig.workflowConfigs.clear();
+        }
         this.isInitialized = false;
         console.log('SentryLogger cleaned up');
     }
@@ -559,5 +566,7 @@ export const {
     cleanup,
     close
 } = sentryLogger;
+
+export const resetLogger = () => SentryLogger.resetInstance();
 
 export default SentryLogger;
