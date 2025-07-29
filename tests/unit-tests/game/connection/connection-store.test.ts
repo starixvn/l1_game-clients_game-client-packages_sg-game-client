@@ -4,7 +4,7 @@ import * as MsgpackParser from "socket.io-msgpack-parser";
 import { AuthStore } from "../../../../src/auth/auth-store";
 import { ConnectionStore, events } from "../../../../src/game/connection";
 import { GameClientEmitMessage, Mediator } from "../../../../src/shared";
-import { BrowserDomUtils, StorageManager, UrlUtils, sentryLogger } from "../../../../src/shared/utils";
+import { BrowserDomUtils, StorageManager, UrlUtils, sentryLogger, logError } from "../../../../src/shared/utils";
 import { gameSettings, siteConfigs } from "../../container.test";
 import { AppTypes } from "./../../../../src/shared/constants/app-type";
 import { GatewayConnectionStore } from "../../../../src/gateway-connection/gateway-connection-store";
@@ -336,7 +336,7 @@ describe("ConnectionStore tests", () => {
             store.onSignedIn();
 
             // assert
-            expect(store.signedIn).toBe(true);
+            expect(store.isSignedIn).toBe(true);
         });
     });
 
@@ -366,7 +366,7 @@ describe("ConnectionStore tests", () => {
             store.onConnectFailed();
 
             // assert
-            expect(store.signedIn).toBe(false);
+            expect(store.isSignedIn).toBe(false);
         });
 
         it("should call connection disconnect", () => {
@@ -385,7 +385,7 @@ describe("ConnectionStore tests", () => {
             store.onConnectFailed(error);
 
             // assert
-            expect(sentryLogger.logError).toHaveBeenCalledWith('ConnectionStore', error);
+            expect(logError).toHaveBeenCalledWith('ConnectionStore', error);
         });
     });
 
@@ -407,7 +407,7 @@ describe("ConnectionStore tests", () => {
             store.onDisconnected();
 
             // assert
-            expect(store.signedIn).toBe(false);
+            expect(store.isSignedIn).toBe(false);
         });
 
         it("should call connection disconnect", () => {
@@ -481,7 +481,7 @@ describe("ConnectionStore tests", () => {
             store.connection = null;
             store.isConnected = false;
             store.isConnected = true;
-            store.signedIn = true;
+            store.isSignedIn = true;
 
             // act
             store.reset();
@@ -490,7 +490,7 @@ describe("ConnectionStore tests", () => {
             expect(store.connection).toBeNull();
             expect(store.isConnected).toBeNull();
             expect(store.isConnectFailed).toBe(false);
-            expect(store.signedIn).toBe(false);
+            expect(store.isSignedIn).toBe(false);
         });
     });
 });

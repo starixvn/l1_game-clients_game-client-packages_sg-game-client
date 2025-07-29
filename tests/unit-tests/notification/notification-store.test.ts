@@ -2,7 +2,7 @@ import { io } from "socket.io-client/dist/socket.io.js";
 import { NotificationStore, events } from "../../../src/notification";
 import { Mediator, NotificationServiceMessage } from "../../../src/shared";
 import { StorageManager, localStorageKeys } from "../../../src/shared/utils";
-import { sentryLogger } from "../../../src/shared/utils/logger";
+import { sentryLogger, logError } from "../../../src/shared/utils/logger";
 
 jest.mock("mobx");
 jest.mock("../../../src/shared/utils/logger", () => ({
@@ -167,7 +167,7 @@ describe("NotificationStore tests", () => {
 
         it("should log error", () => {
             // assert
-            expect(sentryLogger.logError).toHaveBeenCalledWith('NotificationStore', error);
+            expect(logError).toHaveBeenCalledWith('NotificationStore', error);
         });
     });
 

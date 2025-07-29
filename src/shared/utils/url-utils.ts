@@ -69,7 +69,7 @@ export namespace UrlUtils {
         try {
             return /http(s?):\/\/([^\/]+)/.exec(url)[0];
         } catch (e) {
-            sentryLogger.logError(`Can not get subdomain with url ${url}`);
+            sentryLogger.logError('UrlUtils', `Can not get subdomain with url ${url}`);
             return "";
         }
     };
