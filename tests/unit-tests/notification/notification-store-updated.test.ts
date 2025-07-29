@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 // Example of updated notification store test with enhanced logger
 // This shows how to properly mock and test the new logger functionality
 
@@ -10,6 +12,9 @@ import {
     logError,
     logInfo,
     logWarning,
+    logTrace,
+    logDebug,
+    logFatal,
     configureComponent,
     isLoggingEnabled,
     SentryLogLevel

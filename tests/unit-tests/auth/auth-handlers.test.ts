@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 import { stub } from "jest-auto-stub";
 import { AppStore } from "../../../src/app/app-store";
 import { AuthHandlers, AuthStore, UserService } from "../../../src/auth";

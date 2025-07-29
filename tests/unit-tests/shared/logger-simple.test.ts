@@ -1,6 +1,8 @@
 // Simple test file for logger functionality
 // This file tests basic logger functionality without complex mocking
 
+/// <reference types="jest" />
+
 import {
     sentryLogger,
     SentryLogLevel,

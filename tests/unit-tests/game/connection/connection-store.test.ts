@@ -1,4 +1,6 @@
 import { stub } from "jest-auto-stub";
+/// <reference types="jest" />
+
 import { io, Socket } from "socket.io-client";
 import * as MsgpackParser from "socket.io-msgpack-parser";
 import { AuthStore } from "../../../../src/auth/auth-store";

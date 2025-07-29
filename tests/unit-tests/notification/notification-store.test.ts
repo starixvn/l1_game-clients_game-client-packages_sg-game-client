@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+
 import { io } from "socket.io-client/dist/socket.io.js";
 import { NotificationStore, events } from "../../../src/notification";
 import { Mediator, NotificationServiceMessage } from "../../../src/shared";
