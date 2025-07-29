@@ -109,6 +109,8 @@ class SentryLogger {
     static getInstance(): SentryLogger {
         if (!SentryLogger.instance) {
             SentryLogger.instance = new SentryLogger();
+            // Initialize with default config
+            SentryLogger.instance.initialize();
         }
         return SentryLogger.instance;
     }
@@ -118,16 +120,11 @@ class SentryLogger {
         if (SentryLogger.instance) {
             SentryLogger.instance.cleanup();
         }
-        SentryLogger.instance = new SentryLogger();
+        SentryLogger.instance = null;
     }
 
     // Initialize the SentryLogger with global configuration
     initialize(config?: Partial<GlobalSentryConfig>): void {
-        if (this.isInitialized) {
-            console.warn('SentryLogger already initialized');
-            return;
-        }
-
         // Merge provided config with defaults
         if (config) {
             this.globalConfig = { ...this.globalConfig, ...config };
@@ -233,10 +230,10 @@ class SentryLogger {
     }
 
     isLoggingEnabled(componentName: string, level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'): boolean {
-        if (!this.globalConfig?.enabled) return false;
+        if (!this.globalConfig || !this.globalConfig.enabled) return false;
 
         const componentConfig = this.getComponentConfig(componentName);
-        const logLevel = componentConfig?.logLevel || this.globalConfig?.defaultLogLevel || SentryLogLevel.INFO;
+        const logLevel = componentConfig?.logLevel || this.globalConfig.defaultLogLevel || SentryLogLevel.INFO;
 
         // Define level hierarchy (higher number = more important)
         const levelHierarchy = {
@@ -308,19 +305,19 @@ class SentryLogger {
 
     // Workflow tracking methods
     startWorkflow(workflowId: string, workflowName: string, componentName: string, metadata?: Record<string, any>): void {
-        if (!this.globalConfig?.enableWorkflowTracking) return;
+        if (!this.globalConfig || !this.globalConfig.enableWorkflowTracking) return;
 
         const workflowConfig: WorkflowConfig = {
             id: workflowId,
             name: workflowName,
             component: componentName,
-            logLevel: this.getComponentConfig(componentName)?.logLevel || this.globalConfig?.defaultLogLevel || SentryLogLevel.INFO,
-            enablePerformanceTracking: this.globalConfig?.enablePerformanceTracking || false,
+            logLevel: this.getComponentConfig(componentName)?.logLevel || this.globalConfig.defaultLogLevel || SentryLogLevel.INFO,
+            enablePerformanceTracking: this.globalConfig.enablePerformanceTracking || false,
             metadata
         };
 
-        this.globalConfig?.workflowConfigs?.set(workflowId, workflowConfig);
-        this.activeWorkflows?.set(workflowId, {
+        this.globalConfig.workflowConfigs.set(workflowId, workflowConfig);
+        this.activeWorkflows.set(workflowId, {
             config: workflowConfig,
             startTime: performance.now(),
             metadata: metadata || {}
@@ -335,7 +332,7 @@ class SentryLogger {
     }
 
     updateWorkflow(workflowId: string, state: WorkflowState, metadata?: Record<string, any>): void {
-        const workflow = this.activeWorkflows?.get(workflowId);
+        const workflow = this.activeWorkflows.get(workflowId);
         if (!workflow) {
             console.warn(`Workflow ${workflowId} not found for update`);
             return;
@@ -344,7 +341,7 @@ class SentryLogger {
         const { config } = workflow;
         const updatedMetadata = { ...workflow.metadata, ...metadata };
 
-        this.activeWorkflows?.set(workflowId, {
+        this.activeWorkflows.set(workflowId, {
             ...workflow,
             metadata: updatedMetadata
         });
@@ -358,7 +355,7 @@ class SentryLogger {
     }
 
     completeWorkflow(workflowId: string, success: boolean = true, metadata?: Record<string, any>): void {
-        const workflow = this.activeWorkflows?.get(workflowId);
+        const workflow = this.activeWorkflows.get(workflowId);
         if (!workflow) {
             console.warn(`Workflow ${workflowId} not found for completion`);
             return;
@@ -368,8 +365,8 @@ class SentryLogger {
         const finalMetadata = { ...workflow.metadata, ...metadata };
         const duration = performance.now() - workflow.startTime;
 
-        this.activeWorkflows?.delete(workflowId);
-        this.globalConfig?.workflowConfigs?.delete(workflowId);
+        this.activeWorkflows.delete(workflowId);
+        this.globalConfig.workflowConfigs.delete(workflowId);
 
         const state = success ? WorkflowState.COMPLETED : WorkflowState.FAILED;
         this.logInfo(config.component, `Workflow completed: ${config.name}`, {
@@ -383,7 +380,7 @@ class SentryLogger {
     }
 
     trackPerformance(componentName: string, operationName: string, operation: () => Promise<any> | any): Promise<any> {
-        if (!this.globalConfig?.enablePerformanceTracking) {
+        if (!this.globalConfig || !this.globalConfig.enablePerformanceTracking) {
             return Promise.resolve(operation());
         }
 
@@ -418,7 +415,9 @@ class SentryLogger {
 
         globalThis.Sentry.setExtra('component', componentName);
         globalThis.Sentry.setExtra('context', context);
-        globalThis.Sentry.captureMessage(message, level);
+        globalThis.Sentry.setTag('component', componentName);
+        globalThis.Sentry.setTag('logLevel', level);
+        globalThis.Sentry.captureMessage(`[${this.identifier}] [${componentName}] ${message}`, level);
     }
 
     private captureError(componentName: string, error: Error | string, context?: Record<string, any>, level: string = 'error'): void {
@@ -426,7 +425,14 @@ class SentryLogger {
 
         globalThis.Sentry.setExtra('component', componentName);
         globalThis.Sentry.setExtra('context', context);
-        globalThis.Sentry.captureException(error);
+        globalThis.Sentry.setTag('component', componentName);
+        globalThis.Sentry.setTag('logLevel', level);
+
+        if (typeof error === 'string') {
+            globalThis.Sentry.captureMessage(`[${this.identifier}] [${componentName}] ${error}`, level);
+        } else {
+            globalThis.Sentry.captureException(error);
+        }
     }
 
     private overrideConsoleMethods(): void {
@@ -494,7 +500,7 @@ class SentryLogger {
 
     // Get active workflows
     getActiveWorkflows(): Map<string, { config: WorkflowConfig; startTime: number; metadata: Record<string, any> }> {
-        return new Map(this.activeWorkflows || []);
+        return new Map(this.activeWorkflows || new Map());
     }
 
     // Cleanup
@@ -505,11 +511,13 @@ class SentryLogger {
         if (this.componentConfigs) {
             this.componentConfigs.clear();
         }
-        if (this.globalConfig && this.globalConfig.componentConfigs) {
-            this.globalConfig.componentConfigs.clear();
-        }
-        if (this.globalConfig && this.globalConfig.workflowConfigs) {
-            this.globalConfig.workflowConfigs.clear();
+        if (this.globalConfig) {
+            if (this.globalConfig.componentConfigs) {
+                this.globalConfig.componentConfigs.clear();
+            }
+            if (this.globalConfig.workflowConfigs) {
+                this.globalConfig.workflowConfigs.clear();
+            }
         }
         this.isInitialized = false;
         console.log('SentryLogger cleaned up');
@@ -552,20 +560,18 @@ export const trackPerformance = (component: string, operation: string, fn: () =>
     sentryLogger.trackPerformance(component, operation, fn);
 
 // Export all log level methods for convenience
-export const {
-    logTrace,
-    logDebug,
-    logInfo,
-    logWarning,
-    logError,
-    logFatal,
-    isLoggingEnabled,
-    getComponentConfig,
-    getConfig,
-    getActiveWorkflows,
-    cleanup,
-    close
-} = sentryLogger;
+export const logTrace = (componentName: string, message: string, context?: Record<string, any>) => sentryLogger.logTrace(componentName, message, context);
+export const logDebug = (componentName: string, message: string, context?: Record<string, any>) => sentryLogger.logDebug(componentName, message, context);
+export const logInfo = (componentName: string, message: string, context?: Record<string, any>) => sentryLogger.logInfo(componentName, message, context);
+export const logWarning = (componentName: string, message: string, context?: Record<string, any>) => sentryLogger.logWarning(componentName, message, context);
+export const logError = (componentName: string, error: Error | string, context?: Record<string, any>) => sentryLogger.logError(componentName, error, context);
+export const logFatal = (componentName: string, error: Error | string, context?: Record<string, any>) => sentryLogger.logFatal(componentName, error, context);
+export const isLoggingEnabled = (componentName: string, level: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal') => sentryLogger.isLoggingEnabled(componentName, level);
+export const getComponentConfig = (componentName: string) => sentryLogger.getComponentConfig(componentName);
+export const getConfig = () => sentryLogger.getConfig();
+export const getActiveWorkflows = () => sentryLogger.getActiveWorkflows();
+export const cleanup = () => sentryLogger.cleanup();
+export const close = () => sentryLogger.close();
 
 export const resetLogger = () => SentryLogger.resetInstance();
 
