@@ -7,7 +7,7 @@ import { SiteConfigs } from "../configs/site-configs";
 import { ISocketOption } from "../game/connection/connection-store";
 import { Mediator } from "../shared";
 import { SocketEvents } from "../shared/constants/socket-event";
-import { UrlUtils, sentryLogger } from "../shared/utils";
+import { UrlUtils, sentryLogger, logInfo, logError, logWarning } from "../shared/utils";
 
 @injectable()
 export class GatewayConnectionStore {
@@ -117,7 +117,7 @@ export class GatewayConnectionStore {
     }
 
     private logError(reason: string | Error) {
-        sentryLogger.logError(reason);
+        logError('GatewayConnectionStore', reason);
     }
 
     reset() {

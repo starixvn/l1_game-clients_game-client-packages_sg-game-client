@@ -18,7 +18,7 @@ export class AuthUtils {
                 }
             }
         } catch (ex) {
-            sentryLogger.logError(ex);
+            sentryLogger.logError('AuthUtils', ex instanceof Error ? ex : new Error(String(ex)));
             console.log(ex);
         }
 

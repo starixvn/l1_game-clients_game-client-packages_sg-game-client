@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 import { Socket } from "socket.io-client/dist/socket.io.js";
 import { Mediator, NotificationServiceMessage } from "../shared";
 import { SocketEvents } from "../shared/constants/socket-event";
-import { sentryLogger } from "../shared/utils/logger";
+import { sentryLogger, logInfo, logError, logWarning } from "../shared/utils/logger";
 
 export const events = {
     ...SocketEvents,
@@ -73,7 +73,9 @@ export class NotificationStore {
     onConnectFailed(error?: Error) {
         this.isConnectFailed = true;
         this.onDisconnected();
-        error && sentryLogger.logError(error);
+        if (error) {
+            logError('NotificationStore', error);
+        }
     }
 
     onDisconnected() {

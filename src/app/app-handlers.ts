@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 import { ISessionInfo } from "../auth";
 import { PlayerSelectionHandlers } from "../game/player-selections";
 import { IHandler } from "../shared";
-import { BrowserDomUtils, GameUtils, StorageManager, localStorageKeys, sentryLogger } from "../shared/utils";
+import { BrowserDomUtils, GameUtils, StorageManager, localStorageKeys, sentryLogger, logInfo, logError, logWarning } from "../shared/utils";
 import { AppStore } from "./app-store";
 
 export namespace AppHandlers {
@@ -12,7 +12,7 @@ export namespace AppHandlers {
             @inject(AppStore) private readonly appStore: AppStore,
             @inject(PlayerSelectionHandlers.ClearHandlers)
             private readonly playerSelectionClearHandler: PlayerSelectionHandlers.ClearHandlers
-        ) {}
+        ) { }
 
         handle() {
             this.playerSelectionClearHandler.handle();
@@ -26,7 +26,7 @@ export namespace AppHandlers {
                         BrowserDomUtils.postMessageToParent({ ...params, backLobby: true });
                     }
                 } catch (err) {
-                    sentryLogger.logError(err);
+                    logError('BackToOperatorLobby', err instanceof Error ? err : new Error(String(err)));
                 }
             }
         }
@@ -53,7 +53,7 @@ export namespace AppHandlers {
 
     @injectable()
     export class UserGesturePage implements IHandler<boolean> {
-        constructor(@inject(AppStore) private readonly appStore: AppStore) {}
+        constructor(@inject(AppStore) private readonly appStore: AppStore) { }
 
         handle(isUserGesture: boolean) {
             this.appStore.isUserGesture = isUserGesture;
@@ -66,7 +66,7 @@ export namespace AppHandlers {
 
     @injectable()
     export class ClearStorage implements IHandler<boolean> {
-        constructor(@inject(AppStore) private readonly appStore: AppStore) {}
+        constructor(@inject(AppStore) private readonly appStore: AppStore) { }
 
         handle(isClearStorage: boolean) {
             this.appStore.isClearStorage = isClearStorage;

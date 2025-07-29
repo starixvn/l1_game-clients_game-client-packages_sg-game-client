@@ -7,7 +7,7 @@ import { GameServiceMessage, IHandler, utils } from "../shared";
 import { AppTypes } from "../shared/constants/app-type";
 import { BrowserDomUtils } from "../shared/utils/browser-dom-utils";
 import { Translator } from "../shared/utils/localization-manager";
-import { sentryLogger } from "../shared/utils/logger";
+import { sentryLogger, logInfo, logError, logWarning } from "../shared/utils/logger";
 import { NameGenerator } from "../shared/utils/name-generator";
 import { StorageManager, localStorageKeys } from "../shared/utils/storage-manager";
 import { AppStore } from "./../app/app-store";
@@ -110,7 +110,7 @@ export namespace AuthHandlers {
                     await this.reCheckIn.handle({ sessionInfo });
                 }
             } catch (error) {
-                sentryLogger.logError(error);
+                logError('TriggerRecheckIn', error instanceof Error ? error : new Error(String(error)));
             }
         }
 
@@ -151,7 +151,7 @@ export namespace AuthHandlers {
                     this.triggerRecheckIn.handle();
                 }
             } catch (err) {
-                sentryLogger.logError(err);
+                logError('Authorize', err instanceof Error ? err : new Error(String(err)));
             }
         }
 
@@ -256,7 +256,7 @@ export namespace AuthHandlers {
             } catch (err) {
                 this.authStore.ssoErrorMessage = Translator.commonTranslate("splash_connection_lost");
                 this.appStore.setTimeOut();
-                sentryLogger.logError(err);
+                logError('SSO', err instanceof Error ? err : new Error(String(err)));
             }
         }
 

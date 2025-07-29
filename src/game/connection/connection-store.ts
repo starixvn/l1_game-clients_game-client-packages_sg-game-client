@@ -7,7 +7,7 @@ import { SiteConfigs } from "../../configs/site-configs";
 import { GatewayConnectionStore } from "../../gateway-connection";
 import { GameClientEmitMessage, Mediator } from "../../shared";
 import { SocketEvents } from "../../shared/constants/socket-event";
-import { BrowserDomUtils, StorageManager, UrlUtils, localStorageKeys, sentryLogger } from "../../shared/utils";
+import { BrowserDomUtils, StorageManager, UrlUtils, localStorageKeys, sentryLogger, logInfo, logError, logWarning } from "../../shared/utils";
 import { GameSetting } from "../game-configs";
 import { AppTypes } from "./../../shared/constants/app-type";
 
@@ -233,7 +233,7 @@ export class ConnectionStore {
     }
 
     private logError(reason: string | Error) {
-        sentryLogger.logError(reason);
+        logError('ConnectionStore', reason);
     }
 
     private isInstant() {
