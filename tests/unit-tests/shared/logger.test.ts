@@ -48,7 +48,9 @@ const mockDocument = {
     })),
     head: {
         appendChild: jest.fn()
-    }
+    },
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn()
 };
 
 Object.defineProperty(global, 'document', {
