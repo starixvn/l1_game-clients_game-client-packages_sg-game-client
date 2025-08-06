@@ -249,9 +249,10 @@ export namespace AuthHandlers {
             try {
                 this.authStore.reset();
                 if (!this.isValidSessionStorage(ssoInfo)) {
+                    console.log("stand handle isValidSessionStorage", ssoInfo);
                     return;
                 }
-
+                console.log("stand handle handleAuthorizeWithParams", ssoInfo);
                 await this.handleAuthorizeWithParams(ssoInfo);
             } catch (err) {
                 this.authStore.ssoErrorMessage = Translator.commonTranslate("splash_connection_lost");
@@ -300,6 +301,8 @@ export namespace AuthHandlers {
 
         private async handleSSOAndAuthorize(token: string, system: number) {
             const response = await this.userService.sso(token, system);
+
+            console.log("stand handleSSOAndAuthorize", response);
             if (response.isUM) {
                 this.appStore.setUM(response.umInfo);
                 return;
