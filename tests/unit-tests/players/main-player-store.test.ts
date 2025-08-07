@@ -55,6 +55,76 @@ describe("MainPlayerStore", () => {
         expect(mainPlayerStore.displayPlayerCurrency).toBe(user.isDisplayPlayerCurrency);
     });
 
+    test("setAuthorizeStore should handle null offerGames gracefully", () => {
+        // Arrange
+        const user = {
+            UID: 1,
+            name: "John",
+            avatarId: 123,
+            red: 100,
+            scoins: 50,
+            availSpins: 5,
+            currency: "USD",
+            offerGames: null, // Test null offerGames
+            fractionalOddsFormat: true,
+            isDisplayPlayerCurrency: true,
+            type: true,
+            minBet: 1,
+            maxBet: 3000,
+            joinedOn: "join",
+        };
+
+        // Act
+        mainPlayerStore.setAuthorizeStore(user);
+
+        // Assert
+        expect(mainPlayerStore.offerGames).toBeNull();
+        expect(mainPlayerStore.UID).toBe(user.UID);
+        expect(mainPlayerStore.name).toBe(user.name);
+    });
+
+    test("setAuthorizeStore should handle undefined offerGames gracefully", () => {
+        // Arrange
+        const user = {
+            UID: 1,
+            name: "John",
+            avatarId: 123,
+            red: 100,
+            scoins: 50,
+            availSpins: 5,
+            currency: "USD",
+            offerGames: undefined, // Test undefined offerGames
+            fractionalOddsFormat: true,
+            isDisplayPlayerCurrency: true,
+            type: true,
+            minBet: 1,
+            maxBet: 3000,
+            joinedOn: "join",
+        };
+
+        // Act
+        mainPlayerStore.setAuthorizeStore(user);
+
+        // Assert
+        expect(mainPlayerStore.offerGames).toBeUndefined();
+        expect(mainPlayerStore.UID).toBe(user.UID);
+        expect(mainPlayerStore.name).toBe(user.name);
+    });
+
+    test("setOfferGames should handle null and undefined values", () => {
+        // Arrange & Act & Assert for null
+        mainPlayerStore.setOfferGames(null as any);
+        expect(mainPlayerStore.offerGames).toBeNull();
+
+        // Arrange & Act & Assert for undefined
+        mainPlayerStore.setOfferGames(undefined as any);
+        expect(mainPlayerStore.offerGames).toBeUndefined();
+
+        // Arrange & Act & Assert for empty array
+        mainPlayerStore.setOfferGames([]);
+        expect(mainPlayerStore.offerGames).toEqual([]);
+    });
+
     test("setBalance should update the balance, scoin, and availSpins properties on the store", () => {
         // Arrange
         const balance = 100;
