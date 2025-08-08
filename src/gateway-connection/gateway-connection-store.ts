@@ -26,9 +26,11 @@ export class GatewayConnectionStore {
     isDisconnect = false;
 
     initConnection(customizeOptions?: ISocketOption) {
+        console.log("[Gateway] Initializing gateway connection");
         this.reset();
 
         const socketUri = UrlUtils.buildUrlWithPath("/", this.siteConfigs);
+        console.log("[Gateway] Socket URI:", socketUri);
         const optionsDefault: ISocketOption = {
             path: UrlUtils.getProxyRoute(this.siteConfigs),
             socketUri,
@@ -76,16 +78,19 @@ export class GatewayConnectionStore {
     }
 
     onConnected() {
+        console.log("[Gateway] Connection established successfully");
         this.isConnected = true;
         this.isConnectFailed = false;
     }
 
     onConnectFailed(error?: Error) {
+        console.log("[Gateway] Connection failed:", error);
         this.isConnectFailed = true;
         this.handleConnectionStatus(false, error);
     }
 
     onDisconnected(reason = "") {
+        console.log("[Gateway] Disconnected. Reason:", reason);
         this.handleDisconnectionReason(reason);
         this.handleConnectionStatus(false);
     }

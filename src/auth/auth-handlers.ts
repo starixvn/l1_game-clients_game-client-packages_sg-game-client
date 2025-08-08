@@ -135,9 +135,11 @@ export namespace AuthHandlers {
 
         async handle({ session = "", username = "" }) {
             try {
+                console.log("[Authorize] Starting authorization with session:", session, "username:", username);
                 const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo;
                 this.session = session || sessionInfo?.session;
                 this.username = username || sessionInfo?.username;
+                console.log("[Authorize] Using session:", this.session, "username:", this.username);
 
                 const response = (await this.userService.authorize(this.session, this.username)) as IAuthorizeResponse;
 
@@ -247,12 +249,13 @@ export namespace AuthHandlers {
 
         async handle(ssoInfo: ISSOInfo) {
             try {
+                console.log("[SSO] Starting SSO flow with info:", ssoInfo);
                 this.authStore.reset();
                 if (!this.isValidSessionStorage(ssoInfo)) {
-                    console.log("stand handle isValidSessionStorage", ssoInfo);
+                    console.log("[SSO] Invalid session storage, stopping SSO flow");
                     return;
                 }
-                console.log("stand handle handleAuthorizeWithParams", ssoInfo);
+                console.log("[SSO] Valid session, proceeding with authorization");
                 await this.handleAuthorizeWithParams(ssoInfo);
             } catch (err) {
                 this.authStore.ssoErrorMessage = Translator.commonTranslate("splash_connection_lost");

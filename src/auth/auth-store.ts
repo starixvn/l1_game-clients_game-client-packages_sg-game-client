@@ -58,22 +58,28 @@ export class AuthStore {
     }
 
     signOut() {
+        console.log("[AuthStore] Signing out user");
         this.username = null;
         this.session = null;
         this.isAuthenticated = false;
         StorageManager.remove(localStorageKeys.session);
+        console.log("[AuthStore] User signed out, session cleared");
     }
 
     setAuthSSOStore(response: SSOResponse) {
+        console.log("[AuthStore] Setting SSO store with response:", response);
         this.session = response.ss;
         response?.offerGames && this.mainPlayerStore.setOfferGames(response?.offerGames);
         this.mainPlayerStore.setFractionalOddsFormat(response?.fractionalOddsFormat);
         this.setAuthStore(response);
+        console.log("[AuthStore] SSO store updated");
     }
 
     setAuthStoreFromStorage(response: ISessionInfo) {
+        console.log("[AuthStore] Setting auth store from storage:", response);
         this.session = response.session;
         this.setAuthStore(response);
+        console.log("[AuthStore] Auth store updated from storage");
     }
 
     setAuthStoreFromUrlParam(urlParams: URLSearchParams) {

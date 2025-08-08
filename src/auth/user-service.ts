@@ -22,24 +22,39 @@ export class UserService {
         this.setting = this.userServiceClient.setting;
     }
 
-    public sso(token: string, system?: number) {
-        return this.auth.sso(token, system);
+    public async sso(token: string, system?: number) {
+        console.log("[UserService] SSO request with token:", token, "system:", system);
+        const response = await this.auth.sso(token, system);
+        console.log("[UserService] SSO response:", response);
+        return response;
     }
 
-    public authorize(session: string, username: string) {
-        return this.auth.authorize(session, username);
+    public async authorize(session: string, username: string) {
+        console.log("[UserService] Authorize request for user:", username);
+        const response = await this.auth.authorize(session, username);
+        console.log("[UserService] Authorization response:", response);
+        return response;
     }
 
-    public reCheckIn(session: string, username: string) {
-        return this.auth.reCheckIn(session, username);
+    public async reCheckIn(session: string, username: string) {
+        console.log("[UserService] ReCheckIn request for user:", username);
+        const response = await this.auth.reCheckIn(session, username);
+        console.log("[UserService] ReCheckIn response:", response);
+        return response;
     }
 
-    public getBalance(session: string, username: string) {
-        return this.auth.getBalance(session, username);
+    public async getBalance(session: string, username: string) {
+        console.log("[UserService] Getting balance for user:", username);
+        const response = await this.auth.getBalance(session, username);
+        console.log("[UserService] Balance response:", response);
+        return response;
     }
 
-    public signName(session: string, username: string, nickName: string) {
-        return this.auth.signName(session, username, nickName);
+    public async signName(session: string, username: string, nickName: string) {
+        console.log("[UserService] SignName request for user:", username, "nickname:", nickName);
+        const response = await this.auth.signName(session, username, nickName);
+        console.log("[UserService] SignName response:", response);
+        return response;
     }
 
     public getChipSetting(session: string, username: string) {

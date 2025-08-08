@@ -55,10 +55,13 @@ export class ConnectionStore {
     isDisconnect = false;
 
     initConnection(customizeOptions?: ISocketOption) {
+        console.log("[Game Connection] Initializing game connection");
         this.reset();
 
         const gameId = this.gameSetting.id;
+        console.log("[Game Connection] Game ID:", gameId);
         const socketUri = UrlUtils.buildServerUrl("http", `${this.siteConfigs.websocket.proxyPath}`, gameId, this.siteConfigs);
+        console.log("[Game Connection] Socket URI:", socketUri);
 
         const optionsDefault: ISocketOption = {
             path: UrlUtils.getProxyRoute(this.siteConfigs),
@@ -105,19 +108,23 @@ export class ConnectionStore {
     }
 
     onConnected() {
+        console.log("[Game Connection] Connection established");
         this.isConnected = true;
         this.isConnectFailed = false;
         this.connection.onAny(this.onHandleData.bind(this));
         if (!this.gameSetting.isSocketGateway) {
+            console.log("[Game Connection] Not a gateway socket, initiating sign in");
             this.signIn();
         }
     }
 
     onHandleData(event: string, data: any) {
+        console.log("[Game Connection] Received event:", event, "data:", data);
         if (event?.toLocaleLowerCase() === this.gameSetting?.name.toLocaleLowerCase() || event?.toLocaleLowerCase() === "message") {
             Object.entries(data).forEach((entry) => {
                 const [key, value] = entry;
                 if (key === "signedIn" && value) {
+                    console.log("[Game Connection] Sign in successful");
                     this.onSignedIn();
                 }
                 this.mediator.emit(key, value);
@@ -128,11 +135,13 @@ export class ConnectionStore {
     }
 
     signIn(gameName?: string, serviceName?: string) {
+        console.log("[Game Connection] Attempting to sign in", { gameName, serviceName });
         const sessionInfo = StorageManager.get(localStorageKeys.session) as ISessionInfo | null;
         if (!sessionInfo) {
-            console.warn("No session information found.");
+            console.warn("[Game Connection] No session information found.");
             return;
         }
+        console.log("[Game Connection] Session info found:", sessionInfo);
 
         const { session, username, system } = sessionInfo;
         const payload = new GameClientEmitMessage.Signin();

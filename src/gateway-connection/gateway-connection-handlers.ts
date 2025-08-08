@@ -8,14 +8,17 @@ export namespace GatewayConnectionHandlers {
         constructor(@inject(GatewayConnectionStore) protected readonly store: GatewayConnectionStore) { }
 
         handle(customizeOptions?: ISocketOption) {
+            console.log("[GatewayHandlers] Initializing connection with options:", customizeOptions);
             this.store.initConnection(customizeOptions);
         }
 
         reset() {
+            console.log("[GatewayHandlers] Resetting gateway connection");
             this.store.reset();
         }
 
         disconnect() {
+            console.log("[GatewayHandlers] Disconnecting gateway connection");
             this.store.connection?.disconnect();
         }
     }
